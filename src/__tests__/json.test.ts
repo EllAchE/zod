@@ -39,6 +39,12 @@ test("parse string to json", async () => {
   });
   expect(JSON.parse(JSON.stringify(invalidValues))).toEqual({
     success: false,
+    data: {
+      myJsonConfig: {
+        foo: "not a number!"
+      },
+      someOtherValue: null
+    },
     error: {
       name: "ZodError",
       issues: [
@@ -66,6 +72,9 @@ test("parse string to json", async () => {
   });
   expect(JSON.parse(JSON.stringify(invalidJsonSyntax))).toEqual({
     success: false,
+    data: {
+      someOtherValue: null,
+    },
     error: {
       name: "ZodError",
       issues: [

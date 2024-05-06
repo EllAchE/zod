@@ -32,6 +32,7 @@ import {
 } from "./ZodError";
 
 export { ZodParsedType } from "./helpers/util";
+export type { TypeOf as infer };
 
 ///////////////////////////////////////
 ///////////////////////////////////////
@@ -50,7 +51,6 @@ export type ZodTypeAny = ZodType<any, any, any>;
 export type TypeOf<T extends ZodType<any, any, any>> = T["_output"];
 export type input<T extends ZodType<any, any, any>> = T["_input"];
 export type output<T extends ZodType<any, any, any>> = T["_output"];
-export type { TypeOf as infer };
 
 export type CustomErrorParams = Partial<util.Omit<ZodCustomIssue, "code">>;
 export interface ZodTypeDef {
@@ -191,18 +191,15 @@ export abstract class ZodType<
     input: ParseInput,
     ctx?: ParseContext | undefined
   ): ParseContext {
-    return (
-      ctx || {
-        common: input.parent.common,
-        data: input.data,
-
-        parsedType: getParsedType(input.data),
-
-        schemaErrorMap: this._def.errorMap,
-        path: input.path,
-        parent: input.parent,
-      }
-    );
+    return {
+      common: input.parent.common,
+      data: input.data,
+      parsedType: getParsedType(input.data),
+      schemaErrorMap: this._def.errorMap,
+      path: input.path,
+      parent: input.parent,
+      ...ctx
+    }
   }
 
   _processInputParams(input: ParseInput): {
@@ -771,7 +768,7 @@ export class ZodString extends ZodType<string, ZodStringDef, string> {
         expected: ZodParsedType.string,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const status = new ParseStatus();
@@ -1468,7 +1465,7 @@ export class ZodNumber extends ZodType<number, ZodNumberDef, number> {
         expected: ZodParsedType.number,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     let ctx: undefined | ParseContext = undefined;
@@ -1751,7 +1748,7 @@ export class ZodBigInt extends ZodType<bigint, ZodBigIntDef, bigint> {
         expected: ZodParsedType.bigint,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     let ctx: undefined | ParseContext = undefined;
@@ -1951,7 +1948,7 @@ export class ZodBoolean extends ZodType<boolean, ZodBooleanDef, boolean> {
         expected: ZodParsedType.boolean,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
     return OK(input.data);
   }
@@ -1995,7 +1992,7 @@ export class ZodDate extends ZodType<Date, ZodDateDef, Date> {
         expected: ZodParsedType.date,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     if (isNaN(input.data.getTime())) {
@@ -2003,7 +2000,7 @@ export class ZodDate extends ZodType<Date, ZodDateDef, Date> {
       addIssueToContext(ctx, {
         code: ZodIssueCode.invalid_date,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const status = new ParseStatus();
@@ -2123,7 +2120,7 @@ export class ZodSymbol extends ZodType<symbol, ZodSymbolDef, symbol> {
         expected: ZodParsedType.symbol,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     return OK(input.data);
@@ -2162,7 +2159,7 @@ export class ZodUndefined extends ZodType<
         expected: ZodParsedType.undefined,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
     return OK(input.data);
   }
@@ -2197,7 +2194,7 @@ export class ZodNull extends ZodType<null, ZodNullDef, null> {
         expected: ZodParsedType.null,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
     return OK(input.data);
   }
@@ -2279,7 +2276,7 @@ export class ZodNever extends ZodType<never, ZodNeverDef, never> {
       expected: ZodParsedType.never,
       received: ctx.parsedType,
     });
-    return INVALID(input.data)
+    return INVALID(ctx.data)
   }
   static create(params?: RawCreateParams): ZodNever {
     return new ZodNever({
@@ -2310,7 +2307,7 @@ export class ZodVoid extends ZodType<void, ZodVoidDef, void> {
         expected: ZodParsedType.void,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
     return OK(input.data);
   }
@@ -2375,7 +2372,7 @@ export class ZodArray<
         expected: ZodParsedType.array,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     if (def.exactLength !== null) {
@@ -2658,7 +2655,7 @@ export class ZodObject<
         expected: ZodParsedType.object,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const { status, ctx } = this._processInputParams(input);
@@ -3190,7 +3187,7 @@ export class ZodUnion<T extends ZodUnionOptions> extends ZodType<
         code: ZodIssueCode.invalid_union,
         unionErrors,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     if (ctx.common.async) {
@@ -3255,7 +3252,7 @@ export class ZodUnion<T extends ZodUnionOptions> extends ZodType<
         unionErrors,
       });
 
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
   }
 
@@ -3350,7 +3347,7 @@ export class ZodDiscriminatedUnion<
         expected: ZodParsedType.object,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const discriminator = this.discriminator;
@@ -3365,7 +3362,7 @@ export class ZodDiscriminatedUnion<
         options: Array.from(this.optionsMap.keys()),
         path: [discriminator],
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     if (ctx.common.async) {
@@ -3546,7 +3543,7 @@ export class ZodIntersection<
       parsedRight: SyncParseReturnType
     ): SyncParseReturnType<T & U> => {
       if (isAborted(parsedLeft) || isAborted(parsedRight)) {
-        return INVALID(input.data)
+        return INVALID(ctx.data)
       }
 
       const merged = mergeValues(parsedLeft.value, parsedRight.value);
@@ -3556,7 +3553,7 @@ export class ZodIntersection<
           code: ZodIssueCode.invalid_intersection_types,
           mergeErrorPath: merged.mergeErrorPath,
         });
-        return INVALID(input.data)
+        return INVALID(ctx.data)
       }
 
       if (isDirty(parsedLeft) || isDirty(parsedRight)) {
@@ -3667,7 +3664,7 @@ export class ZodTuple<
         expected: ZodParsedType.array,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     if (ctx.data.length < this._def.items.length) {
@@ -3679,7 +3676,7 @@ export class ZodTuple<
         type: "array",
       });
 
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const rest = this._def.rest;
@@ -3791,7 +3788,7 @@ export class ZodRecord<
         expected: ZodParsedType.object,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const pairs: {
@@ -3890,7 +3887,7 @@ export class ZodMap<
         expected: ZodParsedType.map,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const keyType = this._def.keyType;
@@ -3916,7 +3913,7 @@ export class ZodMap<
           const key = await pair.key;
           const value = await pair.value;
           if (key.status === "aborted" || value.status === "aborted") {
-            return INVALID(input.data)
+            return INVALID(ctx.data)
           }
           if (key.status === "dirty" || value.status === "dirty") {
             status.dirty();
@@ -3932,7 +3929,7 @@ export class ZodMap<
         const key = pair.key as SyncParseReturnType;
         const value = pair.value as SyncParseReturnType;
         if (key.status === "aborted" || value.status === "aborted") {
-          return INVALID(input.data)
+          return INVALID(ctx.data)
         }
         if (key.status === "dirty" || value.status === "dirty") {
           status.dirty();
@@ -3988,7 +3985,7 @@ export class ZodSet<Value extends ZodTypeAny = ZodTypeAny> extends ZodType<
         expected: ZodParsedType.set,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const def = this._def;
@@ -4026,7 +4023,7 @@ export class ZodSet<Value extends ZodTypeAny = ZodTypeAny> extends ZodType<
     function finalizeSet(elements: SyncParseReturnType<any>[]) {
       const parsedSet = new Set();
       for (const element of elements) {
-        if (element.status === "aborted") return INVALID(input.data)
+        if (element.status === "aborted") return INVALID(ctx.data)
         if (element.status === "dirty") status.dirty();
         parsedSet.add(element.value);
       }
@@ -4126,7 +4123,7 @@ export class ZodFunction<
         expected: ZodParsedType.function,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     function makeArgsIssue(args: any, error: ZodError): ZodIssue {
@@ -4345,7 +4342,7 @@ export class ZodLiteral<T> extends ZodType<T, ZodLiteralDef<T>, T> {
         expected: this._def.value,
         message: this._def.message,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
     return { status: "valid", value: input.data };
   }
@@ -4417,7 +4414,7 @@ export class ZodEnum<T extends [string, ...string[]]> extends ZodType<
         received: ctx.parsedType,
         code: ZodIssueCode.invalid_type,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     if (!this.#cache) {
@@ -4433,7 +4430,7 @@ export class ZodEnum<T extends [string, ...string[]]> extends ZodType<
         code: ZodIssueCode.invalid_enum_value,
         options: expectedValues,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
     return OK(input.data);
   }
@@ -4546,7 +4543,7 @@ export class ZodNativeEnum<T extends EnumLike> extends ZodType<
         received: ctx.parsedType,
         code: ZodIssueCode.invalid_type,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     if (!this.#cache) {
@@ -4561,7 +4558,7 @@ export class ZodNativeEnum<T extends EnumLike> extends ZodType<
         code: ZodIssueCode.invalid_enum_value,
         options: expectedValues,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
     return OK(input.data as any);
   }
@@ -4636,7 +4633,7 @@ export class ZodFile extends ZodType<File, ZodFileDef> {
         }
         //
       );
-      return INVALID;
+      return INVALID(ctx.data)
     }
 
     const file: File = input.data;
@@ -4874,7 +4871,7 @@ export class ZodPromise<T extends ZodTypeAny> extends ZodType<
         expected: ZodParsedType.promise,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     const promisified =
@@ -4983,26 +4980,26 @@ export class ZodEffects<
 
       if (ctx.common.async) {
         return Promise.resolve(processed).then(async (processed) => {
-          if (status.value === "aborted") return INVALID(input.data)
+          if (status.value === "aborted") return INVALID(ctx.data)
 
           const result = await this._def.schema._parseAsync({
             data: processed,
             path: ctx.path,
             parent: ctx,
           });
-          if (result.status === "aborted") return INVALID(input.data)
+          if (result.status === "aborted") return INVALID(ctx.data)
           if (result.status === "dirty") return DIRTY(result.value);
           if (status.value === "dirty") return DIRTY(result.value);
           return result;
         });
       } else {
-        if (status.value === "aborted") return INVALID(input.data)
+        if (status.value === "aborted") return INVALID(ctx.data)
         const result = this._def.schema._parseSync({
           data: processed,
           path: ctx.path,
           parent: ctx,
         });
-        if (result.status === "aborted") return INVALID(input.data)
+        if (result.status === "aborted") return INVALID(ctx.data)
         if (result.status === "dirty") return DIRTY(result.value);
         if (status.value === "dirty") return DIRTY(result.value);
         return result;
@@ -5028,7 +5025,7 @@ export class ZodEffects<
           path: ctx.path,
           parent: ctx,
         });
-        if (inner.status === "aborted") return INVALID(input.data)
+        if (inner.status === "aborted") return INVALID(ctx.data)
         if (inner.status === "dirty") status.dirty();
 
         // return value is ignored
@@ -5038,7 +5035,7 @@ export class ZodEffects<
         return this._def.schema
           ._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx })
           .then((inner) => {
-            if (inner.status === "aborted") return INVALID(input.data)
+            if (inner.status === "aborted") return INVALID(ctx.data)
             if (inner.status === "dirty") status.dirty();
 
             return executeRefinement(inner.value).then(() => {
@@ -5365,7 +5362,7 @@ export class ZodNaN extends ZodType<number, ZodNaNDef, number> {
         expected: ZodParsedType.nan,
         received: ctx.parsedType,
       });
-      return INVALID(input.data)
+      return INVALID(ctx.data)
     }
 
     return { status: "valid", value: input.data };
@@ -5444,7 +5441,7 @@ export class ZodPipeline<
           path: ctx.path,
           parent: ctx,
         });
-        if (inResult.status === "aborted") return INVALID(input.data)
+        if (inResult.status === "aborted") return INVALID(ctx.data)
         if (inResult.status === "dirty") {
           status.dirty();
           return DIRTY(inResult.value);
@@ -5463,7 +5460,7 @@ export class ZodPipeline<
         path: ctx.path,
         parent: ctx,
       });
-      if (inResult.status === "aborted") return INVALID(input.data)
+      if (inResult.status === "aborted") return INVALID(ctx.data)
       if (inResult.status === "dirty") {
         status.dirty();
         return {

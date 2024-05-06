@@ -159,7 +159,7 @@ export type SafeParseSuccess<Output> = {
 export type SafeParseError<Input, Output> = {
   success: false;
   error: ZodError<Input>;
-  data: Output;
+  data: Output | unknown;
 };
 
 

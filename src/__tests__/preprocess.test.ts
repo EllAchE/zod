@@ -110,6 +110,7 @@ test("preprocess ctx.addIssue with parseAsync", async () => {
     .safeParseAsync("asdf");
 
   expect(JSON.parse(JSON.stringify(result))).toEqual({
+    data: "asdf",
     success: false,
     error: {
       issues: [

@@ -59,6 +59,7 @@ test("transform ctx.addIssue with parseAsync", async () => {
     .safeParseAsync("asdf");
 
   expect(JSON.parse(JSON.stringify(result))).toEqual({
+    data: 4,
     success: false,
     error: {
       issues: [

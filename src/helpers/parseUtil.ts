@@ -107,7 +107,7 @@ export class ParseStatus {
   ): SyncParseReturnType {
     const arrayValue: any[] = [];
     for (const s of results) {
-      if (s.status === "aborted") return INVALID;
+      if (s.status === "aborted") status.abort();
       if (s.status === "dirty") status.dirty();
       arrayValue.push(s.value);
     }
@@ -142,8 +142,8 @@ export class ParseStatus {
     const finalObject: any = {};
     for (const pair of pairs) {
       const { key, value } = pair;
-      if (key.status === "aborted") return INVALID;
-      if (value.status === "aborted") return INVALID;
+      if (key.status === "aborted") status.abort();
+      if (value.status === "aborted") status.abort();
       if (key.status === "dirty") status.dirty();
       if (value.status === "dirty") status.dirty();
 
@@ -163,9 +163,10 @@ export interface ParseResult {
   data: any;
 }
 
-export type INVALID = { status: "aborted" };
-export const INVALID: INVALID = Object.freeze({
+export type INVALID<T> = { status: "aborted", value: T };
+export const INVALID = <T>(value: T): INVALID<T> => ({
   status: "aborted",
+  value
 });
 
 export type DIRTY<T> = { status: "dirty"; value: T };
@@ -174,13 +175,17 @@ export const DIRTY = <T>(value: T): DIRTY<T> => ({ status: "dirty", value });
 export type OK<T> = { status: "valid"; value: T };
 export const OK = <T>(value: T): OK<T> => ({ status: "valid", value });
 
-export type SyncParseReturnType<T = any> = OK<T> | DIRTY<T> | INVALID;
+export type WARN<T> = { status: "warn"; value: T };
+export const WARN = <T>(value: T): WARN<T> => ({ status: "warn", value });
+
+export type SyncParseReturnType<T = any> = OK<T> | DIRTY<T> | WARN<T> | INVALID<T>;
 export type AsyncParseReturnType<T> = Promise<SyncParseReturnType<T>>;
 export type ParseReturnType<T> =
   | SyncParseReturnType<T>
   | AsyncParseReturnType<T>;
 
-export const isAborted = (x: ParseReturnType<any>): x is INVALID =>
+export const isWarn = <T>(x: ParseReturnType<T>): x is WARN<T> => (x as any).status === "warn"
+export const isAborted = <T>(x: ParseReturnType<any>): x is INVALID<T> =>
   (x as any).status === "aborted";
 export const isDirty = <T>(x: ParseReturnType<T>): x is OK<T> | DIRTY<T> =>
   (x as any).status === "dirty";

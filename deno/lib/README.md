@@ -76,6 +76,7 @@
   - [Dates](#dates)
   - [Times](#times)
   - [IP addresses](#ip-addresses)
+  - [JSON](#json)
 - [Numbers](#numbers)
 - [BigInts](#bigints)
 - [NaNs](#nans)
@@ -102,6 +103,7 @@
   - [`.element`](#element)
   - [`.nonempty`](#nonempty)
   - [`.min/.max/.length`](#minmaxlength)
+  - [`.unique`](#unique)
 - [Tuples](#tuples)
 - [Unions](#unions)
 - [Discriminated unions](#discriminated-unions)
@@ -623,11 +625,15 @@ z.string().length(5);
 z.string().email();
 z.string().url();
 z.string().emoji();
+z.string().jwt(); // validates format, NOT signature
+z.string().jwt({ alg: "HS256" }); // specify algorithm
 z.string().uuid();
 z.string().nanoid();
 z.string().cuid();
 z.string().cuid2();
 z.string().ulid();
+z.string().xid();
+z.string().ksuid();
 z.string().regex(regex);
 z.string().includes(string);
 z.string().startsWith(string);
@@ -780,6 +786,44 @@ const ipv6 = z.string().ip({ version: "v6" });
 ipv6.parse("192.168.1.1"); // fail
 ```
 
+### JSON
+
+The `z.string().json(...)` method parses strings as JSON, then [pipes](#pipe) the result to another specified schema.
+
+```ts
+const Env = z.object({
+  API_CONFIG: z.string().json(
+    z.object({
+      host: z.string(),
+      port: z.number().min(1000).max(2000),
+    })
+  ),
+  SOME_OTHER_VALUE: z.string(),
+});
+
+const env = Env.parse({
+  API_CONFIG: '{ "host": "example.com", "port": 1234 }',
+  SOME_OTHER_VALUE: "abc123",
+});
+
+env.API_CONFIG.host; // returns parsed value
+```
+
+If invalid JSON is encountered, the syntax error will be wrapped and put into a parse error:
+
+```ts
+const env = Env.safeParse({
+  API_CONFIG: "not valid json!",
+  SOME_OTHER_VALUE: "abc123",
+});
+
+if (!env.success) {
+  console.log(env.error); // ... Unexpected token n in JSON at position 0 ...
+}
+```
+
+This is recommended over using `z.string().transform(s => JSON.parse(s))`, since that will not catch parse errors, even when using `.safeParse`.
+
 ## Numbers
 
 You can customize certain error messages when creating a number schema.
@@ -904,6 +948,42 @@ console.log(dateSchema.safeParse("0000-00-00").success); // false
 ```
 
 For older zod versions, use [`z.preprocess`](#preprocess) like [described in this thread](https://github.com/colinhacks/zod/discussions/879#discussioncomment-2036276).
+
+## Files (Browser only)
+
+Use z.file() to validate `File` instances.
+
+```ts
+z.file().safeParse(new File(["foobar"], "foobar.txt", { type: "text/plain" })); // success: true
+z.file().safeParse("foobar"); // success: false
+```
+
+You can customize certain error messages when creating a file schema.
+
+```ts
+const myFileSchema = z.file({
+  required_error: "Please select a file",
+  invalid_type_error: "That's not a file!",
+});
+```
+
+Zod provides a handful of file-specific validations.
+
+```ts
+z.file().min(100, { message: "Too small" });
+z.file().max(10_000, { message: "Too large!" });
+
+z.file().accept([".txt", ".csv"], {
+  message: "Accepted file types: .txt, .csv",
+});
+z.file().accept(["text/plain"], {
+  message: "Accepted file type: text/plain",
+});
+
+z.file().filename(z.string().min(3), {
+  message: "Filename must be at least 3 characters long",
+});
+```
 
 ## Zod enums
 
@@ -1404,6 +1484,18 @@ z.string().array().length(5); // must contain 5 items exactly
 ```
 
 Unlike `.nonempty()` these methods do not change the inferred type.
+
+### `.unique`
+
+```ts
+// All elements must be unique
+z.object({ id: z.string() }).array().unique();
+
+// All elements must be unique based on the id property
+z.object({ id: z.string(), name: z.string() })
+  .array()
+  .unique({ identifier: (elt) => elt.id });
+```
 
 ## Tuples
 

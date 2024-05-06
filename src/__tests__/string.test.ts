@@ -199,13 +199,60 @@ test("base64 validations", () => {
   }
 });
 
+test("jwt token", () => {
+  const ONE_PART = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
+  const NOT_BASE64 =
+    "headerIsNotBase64Encoded.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.RRi1X2IlXd5rZa9Mf_0VUOf-RxOzAhbB4tgViUGamWE";
+  const NO_TYP =
+    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.GuoUe6tw79bJlbU1HU0ADX0pr0u2kf3r_4OdrDufSfQ";
+  const TYP_NOT_JWT =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpUVyJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.RRi1X2IlXd5rZa9Mf_0VUOf-RxOzAhbB4tgViUGamWE";
+
+  const GOOD_JWT_HS256 =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+  const GOOD_JWT_ES256 =
+    "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.tyh-VfuzIxCyGYDlkBA7DfyjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17HWP_3cYHBw7AhHale5wky6-sVA";
+
+  const jwtSchema = z.string().jwt();
+
+  expect(() => jwtSchema.parse(ONE_PART)).toThrow();
+  expect(() => jwtSchema.parse(NOT_BASE64)).toThrow();
+  expect(() => jwtSchema.parse(NO_TYP)).toThrow();
+  expect(() => jwtSchema.parse(TYP_NOT_JWT)).toThrow();
+  expect(() => jwtSchema.parse(TYP_NOT_JWT)).toThrow();
+  expect(() => jwtSchema.parse(TYP_NOT_JWT)).toThrow();
+  expect(() =>
+    z.string().jwt({ alg: "ES256" }).parse(GOOD_JWT_HS256)
+  ).toThrow();
+  expect(() =>
+    z.string().jwt({ alg: "HS256" }).parse(GOOD_JWT_ES256)
+  ).toThrow();
+  //Success
+  expect(() => jwtSchema.parse(GOOD_JWT_HS256)).not.toThrow();
+  expect(() => jwtSchema.parse(GOOD_JWT_ES256)).not.toThrow();
+  expect(() =>
+    z.string().jwt({ alg: "HS256" }).parse(GOOD_JWT_HS256)
+  ).not.toThrow();
+  expect(() =>
+    z.string().jwt({ alg: "ES256" }).parse(GOOD_JWT_ES256)
+  ).not.toThrow();
+});
+
 test("url validations", () => {
   const url = z.string().url();
   url.parse("http://google.com");
   url.parse("https://google.com/asdf?asdf=ljk3lk4&asdf=234#asdf");
+  url.parse(
+    "https://anonymous:flabada@developer.mozilla.org/en-US/docs/Web/API/URL/password"
+  );
   expect(() => url.parse("asdf")).toThrow();
+  expect(() => url.parse("http:.......///broken.com")).toThrow();
+  expect(() => url.parse("c:")).toThrow();
+  expect(() => url.parse("WWW:WWW.COM")).toThrow();
   expect(() => url.parse("https:/")).toThrow();
+  expect(() => url.parse("https://asdf")).toThrow();
   expect(() => url.parse("asdfj@lkjsdf.com")).toThrow();
+  expect(() => url.parse("http://localhost")).toThrow();
 });
 
 test("url error overrides", () => {
@@ -243,30 +290,6 @@ test("emoji validations", () => {
   expect(() => emoji.parse("stuff😀")).toThrow();
 });
 
-test("uuid", () => {
-  const uuid = z.string().uuid("custom error");
-  uuid.parse("9491d710-3185-4e06-bea0-6a2f275345e0");
-  uuid.parse("d89e7b01-7598-ed11-9d7a-0022489382fd"); // new sequential id
-  uuid.parse("00000000-0000-0000-0000-000000000000");
-  uuid.parse("b3ce60f8-e8b9-40f5-1150-172ede56ff74"); // Variant 0 - RFC 4122: Reserved, NCS backward compatibility
-  uuid.parse("92e76bf9-28b3-4730-cd7f-cb6bc51f8c09"); // Variant 2 - RFC 4122: Reserved, Microsoft Corporation backward compatibility
-  const result = uuid.safeParse("9491d710-3185-4e06-bea0-6a2f275345e0X");
-  expect(result.success).toEqual(false);
-  if (!result.success) {
-    expect(result.error.issues[0].message).toEqual("custom error");
-  }
-});
-
-test("bad uuid", () => {
-  const uuid = z.string().uuid("custom error");
-  uuid.parse("9491d710-3185-4e06-bea0-6a2f275345e0");
-  const result = uuid.safeParse("invalid uuid");
-  expect(result.success).toEqual(false);
-  if (!result.success) {
-    expect(result.error.issues[0].message).toEqual("custom error");
-  }
-});
-
 test("nanoid", () => {
   const nanoid = z.string().nanoid("custom error");
   nanoid.parse("lfNZluvAxMkf7Q8C5H-QS");
@@ -289,6 +312,70 @@ test("bad nanoid", () => {
     expect(result.error.issues[0].message).toEqual("custom error");
   }
 });
+
+[
+  "9491d710-3185-1e06-bea0-6a2f275345e0",
+  "9491d710-3185-2e06-bea0-6a2f275345e0",
+  "9491d710-3185-3e06-bea0-6a2f275345e0",
+  "9491d710-3185-4e06-bea0-6a2f275345e0",
+  "9491d710-3185-5e06-bea0-6a2f275345e0",
+  "9491d710-3185-5e06-aea0-6a2f275345e0",
+  "9491d710-3185-5e06-8ea0-6a2f275345e0",
+  "9491d710-3185-5e06-9ea0-6a2f275345e0",
+  "00000000-0000-0000-0000-000000000000",
+].forEach((goodUuid) =>
+  test(`uuid: ${goodUuid}`, () => {
+    const uuid = z.string().uuid("custom error");
+    const result = uuid.safeParse(goodUuid);
+    expect(result.success).toEqual(true);
+  })
+);
+
+[
+  "9491d710-3185-0e06-bea0-6a2f275345e0",
+  "9491d710-3185-5e06-0ea0-6a2f275345e0",
+  "d89e7b01-7598-ed11-9d7a-0022489382fd", // new sequential id
+  "b3ce60f8-e8b9-40f5-1150-172ede56ff74", // Variant 0 - RFC 4122: Reserved, NCS backward compatibility
+  "92e76bf9-28b3-4730-cd7f-cb6bc51f8c09", // Variant 2 - RFC 4122: Reserved, Microsoft Corporation backward compatibility
+  "invalid uuid",
+  "9491d710-3185-4e06-bea0-6a2f275345e0X",
+  "ffffffff-ffff-ffff-ffff-ffffffffffff",
+].forEach((badUuid) =>
+  test(`bad uuid: ${badUuid}`, () => {
+    const uuid = z.string().uuid("custom error");
+    const result = uuid.safeParse(badUuid);
+    expect(result.success).toEqual(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toEqual("custom error");
+    }
+  })
+);
+
+[
+  "9491d710-3185-4e06-bea0-6a2f275345e0",
+  "d89e7b01-7598-ed11-9d7a-0022489382fd", // new sequential id
+  "b3ce60f8-e8b9-40f5-1150-172ede56ff74", // Variant 0 - RFC 4122: Reserved, NCS backward compatibility
+  "92e76bf9-28b3-4730-cd7f-cb6bc51f8c09", // Variant 2 - RFC 4122: Reserved, Microsoft Corporation backward compatibility
+  "00000000-0000-0000-0000-000000000000",
+  "ffffffff-ffff-ffff-ffff-ffffffffffff",
+].forEach((goodGuid) =>
+  test(`guid: ${goodGuid}`, () => {
+    const guid = z.string().guid("custom error");
+    const result = guid.safeParse(goodGuid);
+    expect(result.success).toEqual(true);
+  })
+);
+
+["9491d710-3185-4e06-bea0-6a2f275345e0X"].forEach((badGuid) =>
+  test(`bad guid: ${badGuid}`, () => {
+    const guid = z.string().guid("custom error");
+    const result = guid.safeParse(badGuid);
+    expect(result.success).toEqual(false);
+    if (!result.success) {
+      expect(result.error.issues[0].message).toEqual("custom error");
+    }
+  })
+);
 
 test("cuid", () => {
   const cuid = z.string().cuid();
@@ -332,6 +419,28 @@ test("ulid", () => {
   }
 });
 
+test("xid", () => {
+  const xid = z.string().xid();
+  xid.parse("9m4e2mr0ui3e8a215n4g");
+  const result = xid.safeParse("invalidxid");
+  expect(result.success).toEqual(false);
+  if (!result.success) {
+    expect(result.error.issues[0].message).toEqual("Invalid xid");
+  }
+});
+
+test("ksuid", () => {
+  const ksuid = z.string().ksuid();
+  ksuid.parse("0o0t9hkGxgFLtd3lmJ4TSTeY0Vb");
+  const result = ksuid.safeParse("invalidksuid");
+  expect(result.success).toEqual(false);
+  const tooLong = "0o0t9hkGxgFLtd3lmJ4TSTeY0VbA";
+  expect(ksuid.safeParse(tooLong).success).toEqual(false);
+  if (!result.success) {
+    expect(result.error.issues[0].message).toEqual("Invalid ksuid");
+  }
+});
+
 test("regex", () => {
   z.string()
     .regex(/^moo+$/)
@@ -371,6 +480,8 @@ test("checks getters", () => {
   expect(z.string().email().isNANOID).toEqual(false);
   expect(z.string().email().isIP).toEqual(false);
   expect(z.string().email().isULID).toEqual(false);
+  expect(z.string().email().isXID).toEqual(false);
+  expect(z.string().email().isKSUID).toEqual(false);
 
   expect(z.string().url().isEmail).toEqual(false);
   expect(z.string().url().isURL).toEqual(true);
@@ -380,6 +491,8 @@ test("checks getters", () => {
   expect(z.string().url().isNANOID).toEqual(false);
   expect(z.string().url().isIP).toEqual(false);
   expect(z.string().url().isULID).toEqual(false);
+  expect(z.string().url().isXID).toEqual(false);
+  expect(z.string().url().isKSUID).toEqual(false);
 
   expect(z.string().cuid().isEmail).toEqual(false);
   expect(z.string().cuid().isURL).toEqual(false);
@@ -389,6 +502,8 @@ test("checks getters", () => {
   expect(z.string().cuid().isNANOID).toEqual(false);
   expect(z.string().cuid().isIP).toEqual(false);
   expect(z.string().cuid().isULID).toEqual(false);
+  expect(z.string().cuid().isXID).toEqual(false);
+  expect(z.string().cuid().isKSUID).toEqual(false);
 
   expect(z.string().cuid2().isEmail).toEqual(false);
   expect(z.string().cuid2().isURL).toEqual(false);
@@ -398,6 +513,8 @@ test("checks getters", () => {
   expect(z.string().cuid2().isNANOID).toEqual(false);
   expect(z.string().cuid2().isIP).toEqual(false);
   expect(z.string().cuid2().isULID).toEqual(false);
+  expect(z.string().cuid2().isXID).toEqual(false);
+  expect(z.string().cuid2().isKSUID).toEqual(false);
 
   expect(z.string().uuid().isEmail).toEqual(false);
   expect(z.string().uuid().isURL).toEqual(false);
@@ -407,6 +524,7 @@ test("checks getters", () => {
   expect(z.string().uuid().isNANOID).toEqual(false);
   expect(z.string().uuid().isIP).toEqual(false);
   expect(z.string().uuid().isULID).toEqual(false);
+  expect(z.string().uuid().isXID).toEqual(false);
 
   expect(z.string().nanoid().isEmail).toEqual(false);
   expect(z.string().nanoid().isURL).toEqual(false);
@@ -416,6 +534,7 @@ test("checks getters", () => {
   expect(z.string().nanoid().isNANOID).toEqual(true);
   expect(z.string().nanoid().isIP).toEqual(false);
   expect(z.string().nanoid().isULID).toEqual(false);
+  expect(z.string().uuid().isKSUID).toEqual(false);
 
   expect(z.string().ip().isEmail).toEqual(false);
   expect(z.string().ip().isURL).toEqual(false);
@@ -425,6 +544,8 @@ test("checks getters", () => {
   expect(z.string().ip().isNANOID).toEqual(false);
   expect(z.string().ip().isIP).toEqual(true);
   expect(z.string().ip().isULID).toEqual(false);
+  expect(z.string().ip().isXID).toEqual(false);
+  expect(z.string().ip().isKSUID).toEqual(false);
 
   expect(z.string().ulid().isEmail).toEqual(false);
   expect(z.string().ulid().isURL).toEqual(false);
@@ -434,6 +555,26 @@ test("checks getters", () => {
   expect(z.string().ulid().isNANOID).toEqual(false);
   expect(z.string().ulid().isIP).toEqual(false);
   expect(z.string().ulid().isULID).toEqual(true);
+  expect(z.string().ulid().isXID).toEqual(false);
+
+  expect(z.string().xid().isEmail).toEqual(false);
+  expect(z.string().xid().isURL).toEqual(false);
+  expect(z.string().xid().isCUID).toEqual(false);
+  expect(z.string().xid().isCUID2).toEqual(false);
+  expect(z.string().xid().isUUID).toEqual(false);
+  expect(z.string().xid().isIP).toEqual(false);
+  expect(z.string().xid().isULID).toEqual(false);
+  expect(z.string().xid().isXID).toEqual(true);
+  expect(z.string().ulid().isKSUID).toEqual(false);
+
+  expect(z.string().ksuid().isEmail).toEqual(false);
+  expect(z.string().ksuid().isURL).toEqual(false);
+  expect(z.string().ksuid().isCUID).toEqual(false);
+  expect(z.string().ksuid().isCUID2).toEqual(false);
+  expect(z.string().ksuid().isUUID).toEqual(false);
+  expect(z.string().ksuid().isIP).toEqual(false);
+  expect(z.string().ksuid().isULID).toEqual(false);
+  expect(z.string().ksuid().isKSUID).toEqual(true);
 });
 
 test("min max getters", () => {

@@ -1,7 +1,7 @@
 // @ts-ignore TS6133
 import { test } from "@jest/globals";
 
-import { util } from "../helpers/util";
+import { util } from "../helpers";
 import * as z from "../index";
 
 test("first party switch", () => {
@@ -20,6 +20,8 @@ test("first party switch", () => {
     case z.ZodFirstPartyTypeKind.ZodBoolean:
       break;
     case z.ZodFirstPartyTypeKind.ZodDate:
+      break;
+    case z.ZodFirstPartyTypeKind.ZodFile:
       break;
     case z.ZodFirstPartyTypeKind.ZodUndefined:
       break;

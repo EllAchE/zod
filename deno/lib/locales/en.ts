@@ -1,11 +1,11 @@
-import { util, ZodParsedType } from "../helpers/util.ts";
+import { util } from "../helpers/index.ts";
 import { ZodErrorMap, ZodIssueCode } from "../ZodError.ts";
 
 const errorMap: ZodErrorMap = (issue, _ctx) => {
   let message: string;
   switch (issue.code) {
     case ZodIssueCode.invalid_type:
-      if (issue.received === ZodParsedType.undefined) {
+      if (issue.received === util.ZodParsedType.undefined) {
         message = "Required";
       } else {
         message = `Expected ${issue.expected}, received ${issue.received}`;
@@ -139,6 +139,19 @@ const errorMap: ZodErrorMap = (issue, _ctx) => {
       break;
     case ZodIssueCode.not_finite:
       message = "Number must be finite";
+      break;
+    case ZodIssueCode.uniqueness:
+      message = issue.duplicateElements?.length
+        ? `Element(s): '${issue.duplicateElements}' not unique`
+        : "Values must be unique";
+      break;
+    case ZodIssueCode.invalid_file_type:
+      message = `Invalid file type. Expected ${util.joinValues(
+        issue.expected
+      )}, received '${issue.received}'`;
+      break;
+    case ZodIssueCode.invalid_file_name:
+      message = `Invalid file name`;
       break;
     default:
       message = _ctx.defaultError;

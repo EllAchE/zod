@@ -88,31 +88,7 @@ class ParseInputLazyPath implements ParseInput {
   }
 }
 
-const handleResult = <Input, Output>(
-  ctx: ParseContext,
-  result: SyncParseReturnType<Output>
-):
-  | SafeParseSuccess<Output>
-  | SafeParseError<Input, Output> => {
-  if (isValid(result)) {
-    return { success: true, data: result.value };
-  } else {
-    if (!ctx.common.issues.length) {
-      throw new Error("Validation failed but no issues detected.");
-    }
 
-    return {
-      success: false,
-      get error() {
-        if ((this as any)._error) return (this as any)._error as Error;
-        const error = new ZodError(ctx.common.issues);
-        (this as any)._error = error;
-        return (this as any)._error;
-      },
-      data: result.value
-    };
-  }
-};
 
 export type RawCreateParams =
   | {
@@ -258,8 +234,34 @@ export abstract class ZodType<
     };
     const result = this._parseSync({ data, path: ctx.path, parent: ctx });
 
-    return handleResult(ctx, result);
+    return this.handleResult(ctx, result);
   }
+
+  handleResult = <I, O>(
+    ctx: ParseContext,
+    result: SyncParseReturnType<O>
+  ):
+    | SafeParseSuccess<O>
+    | SafeParseError<I, O> => {
+    if (isValid(result)) {
+      return { success: true, data: result.value };
+    } else {
+      if (!ctx.common.issues.length) {
+        throw new Error("Validation failed but no issues detected.");
+      }
+  
+      return {
+        success: false,
+        get error() {
+          if ((this as any)._error) return (this as any)._error as Error;
+          const error = new ZodError(ctx.common.issues);
+          (this as any)._error = error;
+          return (this as any)._error;
+        },
+        data: result.value
+      };
+    }
+  };
 
   superParse(
     data: unknown,
@@ -279,7 +281,7 @@ export abstract class ZodType<
     };
     const result = this._parseSync({ data, path: ctx.path, parent: ctx });
 
-    return handleResult(ctx, result);
+    return this.handleResult(ctx, result);
   }
 
   async parseAsync(
@@ -312,7 +314,7 @@ export abstract class ZodType<
     const result = await (isAsync(maybeAsyncResult)
       ? maybeAsyncResult
       : Promise.resolve(maybeAsyncResult));
-    return handleResult(ctx, result);
+    return this.handleResult(ctx, result);
   }
 
   /** Alias of safeParseAsync */

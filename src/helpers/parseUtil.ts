@@ -177,16 +177,16 @@ export const DIRTY = <T>(value: T): DIRTY<T> => ({ status: "dirty", value });
 export type OK<T> = { status: "valid"; value: T };
 export const OK = <T>(value: T): OK<T> => ({ status: "valid", value });
 
-export type WARN<T> = { status: "warn"; value: T };
-export const WARN = <T>(value: T): WARN<T> => ({ status: "warn", value });
+export type WARN = { status: "warn"; value: unknown };
+export const WARN = (value: unknown): WARN => ({ status: "warn", value });
 
-export type SyncParseReturnType<T = any> = OK<T> | DIRTY<T> | WARN<T> | INVALID<T>;
+export type SyncParseReturnType<T = any> = OK<T> | DIRTY<T> | WARN | INVALID<T>;
 export type AsyncParseReturnType<T> = Promise<SyncParseReturnType<T>>;
 export type ParseReturnType<T> =
   | SyncParseReturnType<T>
   | AsyncParseReturnType<T>;
 
-export const isWarn = <T>(x: ParseReturnType<T>): x is WARN<T> => (x as any).status === "warn"
+export const isWarn = <T>(x: ParseReturnType<T>): x is WARN => (x as any).status === "warn"
 export const isAborted = <T>(x: ParseReturnType<any>): x is INVALID<T> =>
   (x as any).status === "aborted";
 export const isDirty = <T>(x: ParseReturnType<T>): x is OK<T> | DIRTY<T> =>

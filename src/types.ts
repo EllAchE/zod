@@ -6924,8 +6924,8 @@ export * as coerce from "./coerce";
 
 export {
   anyType as any,
-  arrayType as array, bigIntType as bigint,
-  booleanType as boolean, dateType as date,
+  arrayType as wArray, bigIntType as bigint,
+  booleanType as wBoolean, dateType as date,
   discriminatedUnionType as discriminatedUnion,
   effectsType as effect,
   enumType as enum,
@@ -6941,7 +6941,7 @@ export {
   neverType as never,
   nullType as null,
   nullableType as nullable,
-  numberType as number, objectType as object,
+  numberType as wNumber, objectType as wObject,
   oboolean,
   onumber,
   optionalType as optional,
@@ -6949,11 +6949,16 @@ export {
   pipelineType as pipeline,
   preprocessType as preprocess,
   promiseType as promise,
-  recordType as record, strictArrayType as sArray, strictBooleanType as sBoolean, setType as set, strictNumberType as sNumber, strictZodObjectType as sObject, strictStringType as sString, strictObjectType as strictObject, stringType as string, strictUnionType as sUnion, symbolType as symbol,
+  recordType as record, setType as set,
+  // strict objects (aliased over the originals)
+  strictNumberType as number, strictArrayType as array, strictUnionType as union, strictBooleanType as boolean, 
+  strictZodObjectType as object, strictStringType as string, strictObjectType as strictObject,
+  // overriden originals
+  stringType as wString, symbolType as symbol,
   effectsType as transformer,
   tupleType as tuple,
   undefinedType as undefined,
-  unionType as union, unknownType as unknown,
+  unionType as wUnion, unknownType as unknown,
   voidType as void
 };
 

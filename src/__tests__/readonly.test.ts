@@ -10,8 +10,8 @@ enum testEnum {
 }
 
 const schemas = [
-  z.string().readonly(),
-  z.number().readonly(),
+  z.sString().readonly(),
+  z.sNumber().readonly(),
   z.nan().readonly(),
   z.bigint().readonly(),
   z.boolean().readonly(),
@@ -21,17 +21,17 @@ const schemas = [
   z.any().readonly(),
   z.unknown().readonly(),
   z.void().readonly(),
-  z.function().args(z.string(), z.number()).readonly(),
+  z.function().args(z.sString(), z.sNumber()).readonly(),
 
-  z.array(z.string()).readonly(),
-  z.tuple([z.string(), z.number()]).readonly(),
-  z.map(z.string(), z.date()).readonly(),
-  z.set(z.promise(z.string())).readonly(),
-  z.record(z.string()).readonly(),
-  z.record(z.string(), z.number()).readonly(),
-  z.object({ a: z.string(), 1: z.number() }).readonly(),
+  z.sArray(z.sString()).readonly(),
+  z.tuple([z.sString(), z.sNumber()]).readonly(),
+  z.map(z.sString(), z.date()).readonly(),
+  z.set(z.promise(z.sString())).readonly(),
+  z.record(z.sString()).readonly(),
+  z.record(z.sString(), z.sNumber()).readonly(),
+  z.sObject({ a: z.sString(), 1: z.sNumber() }).readonly(),
   z.nativeEnum(testEnum).readonly(),
-  z.promise(z.string()).readonly(),
+  z.promise(z.sString()).readonly(),
 ] as const;
 
 test("flat inference", () => {
@@ -158,18 +158,18 @@ test("flat inference", () => {
 // });
 
 test("object freezing", () => {
-  expect(Object.isFrozen(z.array(z.string()).readonly().parse(["a"]))).toBe(
+  expect(Object.isFrozen(z.sArray(z.sString()).readonly().parse(["a"]))).toBe(
     true
   );
   expect(
     Object.isFrozen(
-      z.tuple([z.string(), z.number()]).readonly().parse(["a", 1])
+      z.tuple([z.sString(), z.sNumber()]).readonly().parse(["a", 1])
     )
   ).toBe(true);
   expect(
     Object.isFrozen(
       z
-        .map(z.string(), z.date())
+        .map(z.sString(), z.date())
         .readonly()
         .parse(new Map([["a", new Date()]]))
     )
@@ -177,45 +177,45 @@ test("object freezing", () => {
   expect(
     Object.isFrozen(
       z
-        .set(z.promise(z.string()))
+        .set(z.promise(z.sString()))
         .readonly()
         .parse(new Set([Promise.resolve("a")]))
     )
   ).toBe(true);
   expect(
-    Object.isFrozen(z.record(z.string()).readonly().parse({ a: "b" }))
+    Object.isFrozen(z.record(z.sString()).readonly().parse({ a: "b" }))
   ).toBe(true);
   expect(
-    Object.isFrozen(z.record(z.string(), z.number()).readonly().parse({ a: 1 }))
+    Object.isFrozen(z.record(z.sString(), z.sNumber()).readonly().parse({ a: 1 }))
   ).toBe(true);
   expect(
     Object.isFrozen(
       z
-        .object({ a: z.string(), 1: z.number() })
+        .sObject({ a: z.sString(), 1: z.sNumber() })
         .readonly()
         .parse({ a: "b", 1: 2 })
     )
   ).toBe(true);
   expect(
     Object.isFrozen(
-      z.promise(z.string()).readonly().parse(Promise.resolve("a"))
+      z.promise(z.sString()).readonly().parse(Promise.resolve("a"))
     )
   ).toBe(true);
 });
 
 test("async object freezing", async () => {
   expect(
-    Object.isFrozen(await z.array(z.string()).readonly().parseAsync(["a"]))
+    Object.isFrozen(await z.sArray(z.sString()).readonly().parseAsync(["a"]))
   ).toBe(true);
   expect(
     Object.isFrozen(
-      await z.tuple([z.string(), z.number()]).readonly().parseAsync(["a", 1])
+      await z.tuple([z.sString(), z.sNumber()]).readonly().parseAsync(["a", 1])
     )
   ).toBe(true);
   expect(
     Object.isFrozen(
       await z
-        .map(z.string(), z.date())
+        .map(z.sString(), z.date())
         .readonly()
         .parseAsync(new Map([["a", new Date()]]))
     )
@@ -223,32 +223,32 @@ test("async object freezing", async () => {
   expect(
     Object.isFrozen(
       await z
-        .set(z.promise(z.string()))
+        .set(z.promise(z.sString()))
         .readonly()
         .parseAsync(new Set([Promise.resolve("a")]))
     )
   ).toBe(true);
   expect(
     Object.isFrozen(
-      await z.record(z.string()).readonly().parseAsync({ a: "b" })
+      await z.record(z.sString()).readonly().parseAsync({ a: "b" })
     )
   ).toBe(true);
   expect(
     Object.isFrozen(
-      await z.record(z.string(), z.number()).readonly().parseAsync({ a: 1 })
+      await z.record(z.sString(), z.sNumber()).readonly().parseAsync({ a: 1 })
     )
   ).toBe(true);
   expect(
     Object.isFrozen(
       await z
-        .object({ a: z.string(), 1: z.number() })
+        .sObject({ a: z.sString(), 1: z.sNumber() })
         .readonly()
         .parseAsync({ a: "b", 1: 2 })
     )
   ).toBe(true);
   expect(
     Object.isFrozen(
-      await z.promise(z.string()).readonly().parseAsync(Promise.resolve("a"))
+      await z.promise(z.sString()).readonly().parseAsync(Promise.resolve("a"))
     )
   ).toBe(true);
 });

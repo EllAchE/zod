@@ -4,7 +4,7 @@ import { expect, test } from "@jest/globals";
 import * as z from "../index";
 
 /// string
-const stringSchema = z.string();
+const stringSchema = z.sString();
 
 test("string async parse", async () => {
   const goodData = "XXX";
@@ -20,7 +20,7 @@ test("string async parse", async () => {
 });
 
 /// number
-const numberSchema = z.number();
+const numberSchema = z.sNumber();
 test("number async parse", async () => {
   const goodData = 1234.2353;
   const badData = "1234";
@@ -155,7 +155,7 @@ test("void async parse", async () => {
 });
 
 /// array
-const arraySchema = z.array(z.string());
+const arraySchema = z.sArray(z.sString());
 test("array async parse", async () => {
   const goodData = ["XXX"];
   const badData = "XXX";
@@ -170,7 +170,7 @@ test("array async parse", async () => {
 });
 
 /// object
-const objectSchema = z.object({ string: z.string() });
+const objectSchema = z.sObject({ string: z.sString() });
 test("object async parse", async () => {
   const goodData = { string: "XXX" };
   const badData = { string: 12 };
@@ -185,7 +185,7 @@ test("object async parse", async () => {
 });
 
 /// union
-const unionSchema = z.union([z.string(), z.undefined()]);
+const unionSchema = z.sUnion([z.sString(), z.undefined()]);
 test("union async parse", async () => {
   const goodData = undefined;
   const badData = null;
@@ -200,7 +200,7 @@ test("union async parse", async () => {
 });
 
 /// record
-const recordSchema = z.record(z.object({}));
+const recordSchema = z.record(z.sObject({}));
 test("record async parse", async () => {
   const goodData = { adsf: {}, asdf: {} };
   const badData = [{}];
@@ -279,7 +279,7 @@ test("nativeEnum async parse", async () => {
 });
 
 /// promise
-const promiseSchema = z.promise(z.number());
+const promiseSchema = z.promise(z.sNumber());
 test("promise async parse good", async () => {
   const goodData = Promise.resolve(123);
 
@@ -308,9 +308,9 @@ test("promise async parse bad", async () => {
 });
 
 test("async validation non-empty strings", async () => {
-  const base = z.object({
-    hello: z.string().refine((x) => x && x.length > 0),
-    foo: z.string().refine((x) => x && x.length > 0),
+  const base = z.sObject({
+    hello: z.sString().refine((x) => x && x.length > 0),
+    foo: z.sString().refine((x) => x && x.length > 0),
   });
 
   const testval = { hello: "", foo: "" };
@@ -325,9 +325,9 @@ test("async validation non-empty strings", async () => {
 });
 
 test("async validation multiple errors 1", async () => {
-  const base = z.object({
-    hello: z.string(),
-    foo: z.number(),
+  const base = z.sObject({
+    hello: z.sString(),
+    foo: z.sNumber(),
   });
 
   const testval = { hello: 3, foo: "hello" };
@@ -343,10 +343,10 @@ test("async validation multiple errors 1", async () => {
 
 test("async validation multiple errors 2", async () => {
   const base = (is_async?: boolean) =>
-    z.object({
-      hello: z.string(),
-      foo: z.object({
-        bar: z.number().refine(is_async ? async () => false : () => false),
+    z.sObject({
+      hello: z.sString(),
+      foo: z.sObject({
+        bar: z.sNumber().refine(is_async ? async () => false : () => false),
       }),
     });
 
@@ -363,10 +363,10 @@ test("async validation multiple errors 2", async () => {
 
 test("ensure early async failure prevents follow-up refinement checks", async () => {
   let count = 0;
-  const base = z.object({
-    hello: z.string(),
+  const base = z.sObject({
+    hello: z.sString(),
     foo: z
-      .number()
+      .sNumber()
       .refine(async () => {
         count++;
         return true;

@@ -10,7 +10,7 @@ test("generics", () => {
     data: unknown
   ) {
     return z
-      .object({
+      .sObject({
         nested: schema, // as z.ZodTypeAny,
       })
       .transform((data) => {
@@ -19,7 +19,7 @@ test("generics", () => {
       .parse({ nested: data });
   }
 
-  const result = stripOuter(z.object({ a: z.string() }), { a: "asdf" });
+  const result = stripOuter(z.sObject({ a: z.sString() }), { a: "asdf" });
   util.assertEqual<typeof result, Promise<{ a: string }>>(true);
 });
 
@@ -29,7 +29,7 @@ test("generics", () => {
 //     valueSchema: VS,
 //     data: unknown
 //   ) => {
-//     const schema = z.object({
+//     const schema = z.sObject({
 //       [key]: valueSchema,
 //     } as { [k in K]: VS });
 //     return { [key]: valueSchema };
@@ -38,13 +38,13 @@ test("generics", () => {
 //     // const inferred: z.infer<z.ZodObject<{ [k in K]: VS }>> = parsed;
 //     // return inferred;
 //   };
-//   const parsed = createSchemaAndParse("foo", z.string(), { foo: "" });
+//   const parsed = createSchemaAndParse("foo", z.sString(), { foo: "" });
 //   util.assertEqual<typeof parsed, { foo: string }>(true);
 // });
 
 test("nested no undefined", () => {
-  const inner = z.string().or(z.array(z.string()));
-  const outer = z.object({ inner });
+  const inner = z.sString().or(z.sArray(z.sString()));
+  const outer = z.sObject({ inner });
   type outerSchema = z.infer<typeof outer>;
   z.util.assertEqual<outerSchema, { inner: string | string[] }>(true);
   expect(outer.safeParse({ inner: undefined }).success).toEqual(false);

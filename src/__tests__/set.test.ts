@@ -5,14 +5,14 @@ import { util } from "../helpers";
 import * as z from "../index";
 import { ZodIssueCode } from "../index";
 
-const stringSet = z.set(z.string());
+const stringSet = z.set(z.sString());
 type stringSet = z.infer<typeof stringSet>;
 
-const minTwo = z.set(z.string()).min(2);
-const maxTwo = z.set(z.string()).max(2);
-const justTwo = z.set(z.string()).size(2);
-const nonEmpty = z.set(z.string()).nonempty();
-const nonEmptyMax = z.set(z.string()).nonempty().max(2);
+const minTwo = z.set(z.sString()).min(2);
+const maxTwo = z.set(z.sString()).max(2);
+const justTwo = z.set(z.sString()).size(2);
+const nonEmpty = z.set(z.sString()).nonempty();
+const nonEmptyMax = z.set(z.sString()).nonempty().max(2);
 
 test("type inference", () => {
   util.assertEqual<stringSet, Set<string>>(true);

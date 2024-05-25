@@ -5,12 +5,12 @@ import { z } from "..";
 import { util } from "../helpers";
 
 test("basic defaults", () => {
-  expect(z.string().default("default").parse(undefined)).toBe("default");
+  expect(z.sString().default("default").parse(undefined)).toBe("default");
 });
 
 test("default with transform", () => {
   const stringWithDefault = z
-    .string()
+    .sString()
     .transform((val) => val.toUpperCase())
     .default("default");
   expect(stringWithDefault.parse(undefined)).toBe("DEFAULT");
@@ -27,7 +27,7 @@ test("default with transform", () => {
 });
 
 test("default on existing optional", () => {
-  const stringWithDefault = z.string().optional().default("asdf");
+  const stringWithDefault = z.sString().optional().default("asdf");
   expect(stringWithDefault.parse(undefined)).toBe("asdf");
   expect(stringWithDefault).toBeInstanceOf(z.ZodDefault);
   expect(stringWithDefault._def.innerType).toBeInstanceOf(z.ZodOptional);
@@ -42,7 +42,7 @@ test("default on existing optional", () => {
 });
 
 test("optional on default", () => {
-  const stringWithDefault = z.string().default("asdf").optional();
+  const stringWithDefault = z.sString().default("asdf").optional();
 
   type inp = z.input<typeof stringWithDefault>;
   util.assertEqual<inp, string | undefined>(true);
@@ -52,7 +52,7 @@ test("optional on default", () => {
 
 test("complex chain example", () => {
   const complex = z
-    .string()
+    .sString()
     .default("asdf")
     .transform((val) => val.toUpperCase())
     .default("qwer")
@@ -64,15 +64,15 @@ test("complex chain example", () => {
 });
 
 test("removeDefault", () => {
-  const stringWithRemovedDefault = z.string().default("asdf").removeDefault();
+  const stringWithRemovedDefault = z.sString().default("asdf").removeDefault();
 
   type out = z.output<typeof stringWithRemovedDefault>;
   util.assertEqual<out, string>(true);
 });
 
 test("nested", () => {
-  const inner = z.string().default("asdf");
-  const outer = z.object({ inner }).default({
+  const inner = z.sString().default("asdf");
+  const outer = z.sObject({ inner }).default({
     inner: undefined,
   });
   type input = z.input<typeof outer>;
@@ -85,14 +85,14 @@ test("nested", () => {
 });
 
 test("chained defaults", () => {
-  const stringWithDefault = z.string().default("inner").default("outer");
+  const stringWithDefault = z.sString().default("inner").default("outer");
   const result = stringWithDefault.parse(undefined);
   expect(result).toEqual("outer");
 });
 
 test("factory", () => {
   expect(
-    z.ZodDefault.create(z.string(), { default: "asdf" }).parse(undefined)
+    z.ZodDefault.create(z.sString(), { default: "asdf" }).parse(undefined)
   ).toEqual("asdf");
 });
 
@@ -102,7 +102,7 @@ test("native enum", () => {
     orange = "orange",
   }
 
-  const schema = z.object({
+  const schema = z.sObject({
     fruit: z.nativeEnum(Fruits).default(Fruits.apple),
   });
 
@@ -110,7 +110,7 @@ test("native enum", () => {
 });
 
 test("enum", () => {
-  const schema = z.object({
+  const schema = z.sObject({
     fruit: z.enum(["apple", "orange"]).default("apple"),
   });
 

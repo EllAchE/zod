@@ -4,10 +4,10 @@ import { expect, test } from "@jest/globals";
 import { util } from "../helpers";
 import * as z from "../index";
 
-const fish = z.object({
-  name: z.string(),
-  age: z.number(),
-  nested: z.object({}),
+const fish = z.sObject({
+  name: z.sString(),
+  age: z.sNumber(),
+  nested: z.sObject({}),
 });
 
 test("pick type inference", () => {
@@ -95,9 +95,9 @@ test("nonstrict parsing - fail", () => {
 });
 
 test("pick/omit/required/partial - do not allow unknown keys", () => {
-  const schema = z.object({
-    name: z.string(),
-    age: z.number(),
+  const schema = z.sObject({
+    name: z.sString(),
+    age: z.sNumber(),
   });
 
   // @ts-expect-error

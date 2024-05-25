@@ -4,9 +4,9 @@ import { expect, test } from "@jest/globals";
 import * as z from "../index";
 
 test("function parsing", () => {
-  const schema = z.union([
-    z.string().refine(() => false),
-    z.number().refine(() => false),
+  const schema = z.sUnion([
+    z.sString().refine(() => false),
+    z.sNumber().refine(() => false),
   ]);
   const result = schema.safeParse("asdf");
   expect(result.success).toEqual(false);
@@ -14,17 +14,17 @@ test("function parsing", () => {
 
 test("union 2", () => {
   const result = z
-    .union([z.number(), z.string().refine(() => false)])
+    .sUnion([z.sNumber(), z.sString().refine(() => false)])
     .safeParse("a");
   expect(result.success).toEqual(false);
 });
 
 test("return valid over invalid", () => {
-  const schema = z.union([
-    z.object({
-      email: z.string().email(),
+  const schema = z.sUnion([
+    z.sObject({
+      email: z.sString().email(),
     }),
-    z.string(),
+    z.sString(),
   ]);
   expect(schema.parse("asdf")).toEqual("asdf");
   expect(schema.parse({ email: "asdlkjf@lkajsdf.com" })).toEqual({
@@ -34,7 +34,7 @@ test("return valid over invalid", () => {
 
 test("return dirty result over aborted", () => {
   const result = z
-    .union([z.number(), z.string().refine(() => false)])
+    .sUnion([z.sNumber(), z.sString().refine(() => false)])
     .safeParse("a");
   expect(result.success).toEqual(false);
   if (!result.success) {
@@ -49,7 +49,7 @@ test("return dirty result over aborted", () => {
 });
 
 test("options getter", async () => {
-  const union = z.union([z.string(), z.number()]);
+  const union = z.sUnion([z.sString(), z.sNumber()]);
   union.options[0].parse("asdf");
   union.options[1].parse(1234);
   await union.options[0].parseAsync("asdf");
@@ -57,8 +57,8 @@ test("options getter", async () => {
 });
 
 test("readonly union", async () => {
-  const options = [z.string(), z.number()] as const;
-  const union = z.union(options);
+  const options = [z.sString(), z.sNumber()] as const;
+  const union = z.sUnion(options);
   union.parse("asdf");
   union.parse(12);
 });

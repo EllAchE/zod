@@ -471,8 +471,8 @@ export abstract class ZodType<
   nullish(): ZodOptional<ZodNullable<this>> {
     return this.nullable().optional();
   }
-  array(): ZodArray<this> {
-    return ZodArray.create(this, this._def);
+  array(): StrictZodArray<this> {
+    return StrictZodArray.create(this, this._def);
   }
   promise(): ZodPromise<this> {
     return ZodPromise.create(this, this._def);
@@ -772,7 +772,7 @@ function isValidJwt(token: string, algorithm: JwtAlgorithm | null = null) {
   }
 }
 
-export class ZodString<Output = string | unknown, Input = Output> extends ZodType<Output, ZodStringDef, Input> {
+export class ZodString<Output = unknown, Input = Output> extends ZodType<Output, ZodStringDef, Input> {
   _parse(input: ParseInput): ParseReturnType<Output> {
     if (this._def.coerce) {
       input.data = String(input.data);
@@ -1774,7 +1774,7 @@ export class ZodString<Output = string | unknown, Input = Output> extends ZodTyp
   }
 }
 
-export class StrictZodString extends ZodString<string, string> {
+export class StrictZodString extends ZodString<string> {
   _parse(input: ParseInput) {
     if (this._def.coerce) {
       input.data = String(input.data);

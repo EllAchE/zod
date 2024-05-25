@@ -5,15 +5,15 @@ import * as z from "../index";
 
 test("object augmentation", () => {
   const Animal = z
-    .object({
-      species: z.string(),
+    .sObject({
+      species: z.sString(),
     })
     .augment({
-      population: z.number(),
+      population: z.sNumber(),
     });
   // overwrites `species`
   const ModifiedAnimal = Animal.augment({
-    species: z.array(z.string()),
+    species: z.sArray(z.sString()),
   });
   ModifiedAnimal.parse({
     species: ["asd"],

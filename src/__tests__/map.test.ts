@@ -5,7 +5,7 @@ import { util } from "../helpers";
 import * as z from "../index";
 import { ZodIssueCode } from "../index";
 
-const stringMap = z.map(z.string(), z.string());
+const stringMap = z.map(z.sString(), z.sString());
 type stringMap = z.infer<typeof stringMap>;
 
 test("type inference", () => {
@@ -88,10 +88,10 @@ test("throws when the given map has multiple invalid entries", () => {
 
 test("dirty", async () => {
   const map = z.map(
-    z.string().refine((val) => val === val.toUpperCase(), {
+    z.sString().refine((val) => val === val.toUpperCase(), {
       message: "Keys must be uppercase",
     }),
-    z.string()
+    z.sString()
   );
   const result = await map.spa(
     new Map([

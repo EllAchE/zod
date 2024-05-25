@@ -4,10 +4,10 @@ import { expect, test } from "@jest/globals";
 import * as z from "../index";
 
 test("object intersection", () => {
-  const BaseTeacher = z.object({
-    subjects: z.array(z.string()),
+  const BaseTeacher = z.sObject({
+    subjects: z.sArray(z.sString()),
   });
-  const HasID = z.object({ id: z.string() });
+  const HasID = z.sObject({ id: z.sString() });
 
   const Teacher = z.intersection(BaseTeacher.passthrough(), HasID); // BaseTeacher.merge(HasID);
   const data = {
@@ -24,14 +24,14 @@ test("object intersection", () => {
 });
 
 test("deep intersection", () => {
-  const Animal = z.object({
-    properties: z.object({
+  const Animal = z.sObject({
+    properties: z.sObject({
       is_animal: z.boolean(),
     }),
   });
   const Cat = z
-    .object({
-      properties: z.object({
+    .sObject({
+      properties: z.sObject({
         jumped: z.boolean(),
       }),
     })
@@ -44,18 +44,18 @@ test("deep intersection", () => {
 });
 
 test("deep intersection of arrays", async () => {
-  const Author = z.object({
-    posts: z.array(
-      z.object({
-        post_id: z.number(),
+  const Author = z.sObject({
+    posts: z.sArray(
+      z.sObject({
+        post_id: z.sNumber(),
       })
     ),
   });
   const Registry = z
-    .object({
-      posts: z.array(
-        z.object({
-          title: z.string(),
+    .sObject({
+      posts: z.sArray(
+        z.sObject({
+          title: z.sString(),
         })
       ),
     })
@@ -73,8 +73,8 @@ test("deep intersection of arrays", async () => {
 
 test("invalid intersection types", async () => {
   const numberIntersection = z.intersection(
-    z.number(),
-    z.number().transform((x) => x + 1)
+    z.sNumber(),
+    z.sNumber().transform((x) => x + 1)
   );
 
   const syncResult = numberIntersection.safeParse(1234);
@@ -104,10 +104,10 @@ test("invalid intersection types", async () => {
 
 test("invalid array merge (incompatible lengths)", async () => {
   const stringArrInt = z.intersection(
-    z.string().array(),
+    z.sString().sArray(),
     z
-      .string()
-      .array()
+      .sString()
+      .sArray()
       .transform((val) => [...val, "asdf"])
   );
 
@@ -138,10 +138,10 @@ test("invalid array merge (incompatible lengths)", async () => {
 
 test("invalid array merge (incompatible elements)", async () => {
   const stringArrInt = z.intersection(
-    z.string().array(),
+    z.sString().sArray(),
     z
-      .string()
-      .array()
+      .sString()
+      .sArray()
       .transform((val) => [...val.slice(0, -1), "asdf"])
   );
 
@@ -171,11 +171,11 @@ test("invalid array merge (incompatible elements)", async () => {
 });
 
 test("invalid object merge", async () => {
-  const Cat = z.object({
-    phrase: z.string().transform((val) => `${val} Meow`),
+  const Cat = z.sObject({
+    phrase: z.sString().transform((val) => `${val} Meow`),
   });
-  const Dog = z.object({
-    phrase: z.string().transform((val) => `${val} Woof`),
+  const Dog = z.sObject({
+    phrase: z.sString().transform((val) => `${val} Woof`),
   });
   const CatDog = z.intersection(Cat, Dog);
 
@@ -205,19 +205,19 @@ test("invalid object merge", async () => {
 });
 
 test("invalid deep merge of object and array combination", async () => {
-  const University = z.object({
-    students: z.array(
-      z.object({
-        name: z.string().transform((val) => `Student name: ${val}`),
+  const University = z.sObject({
+    students: z.sArray(
+      z.sObject({
+        name: z.sString().transform((val) => `Student name: ${val}`),
       })
     ),
   });
   const Registry = z
-    .object({
-      students: z.array(
-        z.object({
-          name: z.string(),
-          surname: z.string(),
+    .sObject({
+      students: z.sArray(
+        z.sObject({
+          name: z.sString(),
+          surname: z.sString(),
         })
       ),
     })

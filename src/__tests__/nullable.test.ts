@@ -18,18 +18,18 @@ function checkErrors(a: z.ZodTypeAny, bad: any) {
 }
 
 test("Should have error messages appropriate for the underlying type", () => {
-  checkErrors(z.string().min(2), 1);
-  z.string().min(2).nullable().parse(null);
-  checkErrors(z.number().gte(2), 1);
-  z.number().gte(2).nullable().parse(null);
+  checkErrors(z.sString().min(2), 1);
+  z.sString().min(2).nullable().parse(null);
+  checkErrors(z.sNumber().gte(2), 1);
+  z.sNumber().gte(2).nullable().parse(null);
   checkErrors(z.boolean(), "");
   z.boolean().nullable().parse(null);
   checkErrors(z.null(), null);
   z.null().nullable().parse(null);
   checkErrors(z.null(), {});
   z.null().nullable().parse(null);
-  checkErrors(z.object({}), 1);
-  z.object({}).nullable().parse(null);
+  checkErrors(z.sObject({}), 1);
+  z.sObject({}).nullable().parse(null);
   checkErrors(z.tuple([]), 1);
   z.tuple([]).nullable().parse(null);
   checkErrors(z.unknown(), 1);
@@ -37,6 +37,6 @@ test("Should have error messages appropriate for the underlying type", () => {
 });
 
 test("unwrap", () => {
-  const unwrapped = z.string().nullable().unwrap();
+  const unwrapped = z.sString().nullable().unwrap();
   expect(unwrapped).toBeInstanceOf(z.ZodString);
 });

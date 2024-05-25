@@ -5,9 +5,9 @@ import { util } from "../helpers";
 import * as z from "../index";
 
 const promSchema = z.promise(
-  z.object({
-    name: z.string(),
-    age: z.number(),
+  z.sObject({
+    name: z.sString(),
+    age: z.sNumber(),
   })
 );
 
@@ -60,7 +60,7 @@ test("promise parsing fail", () => {
 });
 
 // test('sync promise parsing', () => {
-//   expect(() => z.promise(z.string()).parse(Promise.resolve('asfd'))).toThrow();
+//   expect(() => z.promise(z.sString()).parse(Promise.resolve('asfd'))).toThrow();
 // });
 
 const asyncFunction = z.function(z.tuple([]), promSchema);
@@ -83,7 +83,7 @@ test("async function fail", async () => {
 });
 
 test("async promise parsing", () => {
-  const res = z.promise(z.number()).parseAsync(Promise.resolve(12));
+  const res = z.promise(z.sNumber()).parseAsync(Promise.resolve(12));
   expect(res).toBeInstanceOf(Promise);
 });
 

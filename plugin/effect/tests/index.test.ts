@@ -5,8 +5,8 @@ import assert from "node:assert";
 import test from "node:test";
 import * as z from "zod";
 
-const syncSchema = z.string();
-const asyncSchema = z.string().refine(async () => true);
+const syncSchema = z.sString();
+const asyncSchema = z.sString().refine(async () => true);
 
 test("Sync schema should return the input value", () => {
   const result = Effect.runSync(syncSchema.effect.parseSync("hello"));
@@ -19,7 +19,7 @@ test("Async schema should return the input value", async () => {
 });
 
 test("Sync schema should return fail ZodError", async () => {
-  assert.throws(() => Effect.runSync(z.number().effect.parseSync("hello")));
+  assert.throws(() => Effect.runSync(z.sNumber().effect.parseSync("hello")));
 });
 
 test("ZodError should have the correct tag", () => {
@@ -28,7 +28,7 @@ test("ZodError should have the correct tag", () => {
 });
 
 test("Pass parse params into .effect.parseSync as the second params", () => {
-  const schema = z.string().min(5);
+  const schema = z.sString().min(5);
 
   const result = Effect.runSyncExit(
     schema.effect.parseSync(5, {

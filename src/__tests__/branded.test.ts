@@ -6,8 +6,8 @@ import * as z from "../index";
 
 test("branded types", () => {
   const mySchema = z
-    .object({
-      name: z.string(),
+    .sObject({
+      name: z.sString(),
     })
     .brand<"superschema">();
 
@@ -32,14 +32,14 @@ test("branded types", () => {
   doStuff(extendedSchema.parse({ name: "hello again" }));
 
   // number branding
-  const numberSchema = z.number().brand<42>();
+  const numberSchema = z.sNumber().brand<42>();
   type NumberSchema = z.infer<typeof numberSchema>;
   util.assertEqual<NumberSchema, number & { [z.BRAND]: { 42: true } }>(true);
 
   // symbol branding
   const MyBrand: unique symbol = Symbol("hello");
   type MyBrand = typeof MyBrand;
-  const symbolBrand = z.number().brand<"sup">().brand<typeof MyBrand>();
+  const symbolBrand = z.sNumber().brand<"sup">().brand<typeof MyBrand>();
   type SymbolBrand = z.infer<typeof symbolBrand>;
   // number & { [z.BRAND]: { sup: true, [MyBrand]: true } }
   util.assertEqual<SymbolBrand, number & z.BRAND<"sup"> & z.BRAND<MyBrand>>(
@@ -47,7 +47,7 @@ test("branded types", () => {
   );
 
   // keeping brands out of input types
-  const age = z.number().brand<"age">();
+  const age = z.sNumber().brand<"age">();
 
   type Age = z.infer<typeof age>;
   type AgeInput = z.input<typeof age>;

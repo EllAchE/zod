@@ -6,9 +6,9 @@ import * as z from "../index";
 import { ZodIssueCode } from "../ZodError";
 
 test("refinement", () => {
-  const obj1 = z.object({
-    first: z.string(),
-    second: z.string(),
+  const obj1 = z.sObject({
+    first: z.sString(),
+    second: z.sString(),
   });
   const obj2 = obj1.partial().strict();
 
@@ -30,10 +30,10 @@ test("refinement", () => {
 
 test("refinement 2", () => {
   const validationSchema = z
-    .object({
-      email: z.string().email(),
-      password: z.string(),
-      confirmPassword: z.string(),
+    .sObject({
+      email: z.sString().email(),
+      password: z.sString(),
+      confirmPassword: z.sString(),
     })
     .refine(
       (data) => data.password === data.confirmPassword,
@@ -50,8 +50,8 @@ test("refinement 2", () => {
 });
 
 test("refinement type guard", () => {
-  const validationSchema = z.object({
-    a: z.string().refine((s): s is "a" => s === "a"),
+  const validationSchema = z.sObject({
+    a: z.sString().refine((s): s is "a" => s === "a"),
   });
   type Input = z.input<typeof validationSchema>;
   type Schema = z.infer<typeof validationSchema>;
@@ -65,10 +65,10 @@ test("refinement type guard", () => {
 
 test("refinement Promise", async () => {
   const validationSchema = z
-    .object({
-      email: z.string().email(),
-      password: z.string(),
-      confirmPassword: z.string(),
+    .sObject({
+      email: z.sString().email(),
+      password: z.sString(),
+      confirmPassword: z.sString(),
     })
     .refine(
       (data) =>
@@ -85,9 +85,9 @@ test("refinement Promise", async () => {
 
 test("custom path", async () => {
   const result = await z
-    .object({
-      password: z.string(),
-      confirm: z.string(),
+    .sObject({
+      password: z.sString(),
+      confirm: z.sString(),
     })
     .refine((data) => data.confirm === data.password, { path: ["confirm"] })
     .spa({ password: "asdf", confirm: "qewr" });
@@ -98,7 +98,7 @@ test("custom path", async () => {
 });
 
 test("use path in refinement context", async () => {
-  const noNested = z.string()._refinement((_val, ctx) => {
+  const noNested = z.sString()._refinement((_val, ctx) => {
     if (ctx.path.length > 0) {
       ctx.addIssue({
         code: ZodIssueCode.custom,
@@ -110,7 +110,7 @@ test("use path in refinement context", async () => {
     }
   });
 
-  const data = z.object({
+  const data = z.sObject({
     foo: noNested,
   });
 
@@ -127,7 +127,7 @@ test("use path in refinement context", async () => {
 });
 
 test("superRefine", () => {
-  const Strings = z.array(z.string()).superRefine((val, ctx) => {
+  const Strings = z.sArray(z.sString()).superRefine((val, ctx) => {
     if (val.length > 3) {
       ctx.addIssue({
         code: z.ZodIssueCode.too_big,
@@ -156,7 +156,7 @@ test("superRefine", () => {
 });
 
 test("superRefine async", async () => {
-  const Strings = z.array(z.string()).superRefine(async (val, ctx) => {
+  const Strings = z.sArray(z.sString()).superRefine(async (val, ctx) => {
     if (val.length > 3) {
       ctx.addIssue({
         code: z.ZodIssueCode.too_big,
@@ -187,9 +187,9 @@ test("superRefine async", async () => {
 test("superRefine - type narrowing", () => {
   type NarrowType = { type: string; age: number };
   const schema = z
-    .object({
-      type: z.string(),
-      age: z.number(),
+    .sObject({
+      type: z.sString(),
+      age: z.sNumber(),
     })
     .nullable()
     .superRefine((arg, ctx): arg is NarrowType => {
@@ -216,9 +216,9 @@ test("chained mixed refining types", () => {
   type secondRefinement = { first: "bob"; second: number; third: true };
   type thirdRefinement = { first: "bob"; second: 33; third: true };
   const schema = z
-    .object({
-      first: z.string(),
-      second: z.number(),
+    .sObject({
+      first: z.sString(),
+      second: z.sNumber(),
       third: z.boolean(),
     })
     .nullable()
@@ -243,7 +243,7 @@ test("chained mixed refining types", () => {
 });
 
 test("get inner type", () => {
-  z.string()
+  z.sString()
     .refine(() => true)
     .innerType()
     .parse("asdf");
@@ -251,9 +251,9 @@ test("get inner type", () => {
 
 test("chained refinements", () => {
   const objectSchema = z
-    .object({
-      length: z.number(),
-      size: z.number(),
+    .sObject({
+      length: z.sNumber(),
+      size: z.sNumber(),
     })
     .refine(({ length }) => length > 5, {
       path: ["length"],
@@ -280,7 +280,7 @@ test("chained refinements", () => {
 
 test("fatal superRefine", () => {
   const Strings = z
-    .string()
+    .sString()
     .superRefine((val, ctx) => {
       if (val === "") {
         ctx.addIssue({

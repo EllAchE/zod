@@ -6,27 +6,27 @@ import * as z from "../index";
 test("parse strict object with unknown keys", () => {
   expect(() =>
     z
-      .object({ name: z.string() })
+      .sObject({ name: z.sString() })
       .strict()
       .parse({ name: "bill", unknownKey: 12 } as any)
   ).toThrow();
 });
 
 test("parse nonstrict object with unknown keys", () => {
-  z.object({ name: z.string() })
+  z.sObject({ name: z.sString() })
     .nonstrict()
     .parse({ name: "bill", unknownKey: 12 });
 });
 
 test("invalid left side of intersection", () => {
   expect(() =>
-    z.intersection(z.string(), z.number()).parse(12 as any)
+    z.intersection(z.sString(), z.sNumber()).parse(12 as any)
   ).toThrow();
 });
 
 test("invalid right side of intersection", () => {
   expect(() =>
-    z.intersection(z.string(), z.number()).parse("12" as any)
+    z.intersection(z.sString(), z.sNumber()).parse("12" as any)
   ).toThrow();
 });
 
@@ -43,5 +43,5 @@ test("invalid enum value", () => {
 });
 
 test("parsing unknown", () => {
-  z.string().parse("Red" as unknown);
+  z.sString().parse("Red" as unknown);
 });

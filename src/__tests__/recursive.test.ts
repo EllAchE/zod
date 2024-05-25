@@ -28,26 +28,26 @@ const testCategory: Category = {
   ],
 };
 
-test("recursion with z.late.object", () => {
-  const Category: z.ZodType<Category> = z.late.object(() => ({
-    name: z.string(),
-    subcategories: z.array(Category),
+test("recursion with z.late.sObject", () => {
+  const Category: z.ZodType<Category> = z.late.sObject(() => ({
+    name: z.sString(),
+    subcategories: z.sArray(Category),
   }));
   Category.parse(testCategory);
 });
 
 test("recursion with z.lazy", () => {
   const Category: z.ZodType<Category> = z.lazy(() =>
-    z.object({
-      name: z.string(),
-      subcategories: z.array(Category),
+    z.sObject({
+      name: z.sString(),
+      subcategories: z.sArray(Category),
     })
   );
   Category.parse(testCategory);
 });
 
 test("schema getter", () => {
-  z.lazy(() => z.string()).schema.parse("asdf");
+  z.lazy(() => z.sString()).schema.parse("asdf");
 });
 
 type LinkedList = null | { value: number; next: LinkedList };
@@ -68,10 +68,10 @@ const linkedListExample = {
 
 test("recursion involving union type", () => {
   const LinkedListSchema: z.ZodType<LinkedList> = z.lazy(() =>
-    z.union([
+    z.sUnion([
       z.null(),
-      z.object({
-        value: z.number(),
+      z.sObject({
+        value: z.sNumber(),
         next: LinkedListSchema,
       }),
     ])
@@ -89,23 +89,23 @@ test("recursion involving union type", () => {
 //   a: A;
 // }
 
-// const A: z.ZodType<A> = z.late.object(() => ({
-//   val: z.number(),
+// const A: z.ZodType<A> = z.late.sObject(() => ({
+//   val: z.sNumber(),
 //   b: B,
 // }));
 
-// const B: z.ZodType<B> = z.late.object(() => ({
-//   val: z.number(),
+// const B: z.ZodType<B> = z.late.sObject(() => ({
+//   val: z.sNumber(),
 //   a: A,
 // }));
 
-// const Alazy: z.ZodType<A> = z.lazy(() => z.object({
-//   val: z.number(),
+// const Alazy: z.ZodType<A> = z.lazy(() => z.sObject({
+//   val: z.sNumber(),
 //   b: B,
 // }));
 
-// const Blazy: z.ZodType<B> = z.lazy(() => z.object({
-//   val: z.number(),
+// const Blazy: z.ZodType<B> = z.lazy(() => z.sObject({
+//   val: z.sNumber(),
 //   a: A,
 // }));
 
@@ -126,14 +126,14 @@ test("recursion involving union type", () => {
 
 // test('masking check', () => {
 //   const FragmentOnA = z
-//     .object({
-//       val: z.number(),
+//     .sObject({
+//       val: z.sNumber(),
 //       b: z
-//         .object({
-//           val: z.number(),
+//         .sObject({
+//           val: z.sNumber(),
 //           a: z
-//             .object({
-//               val: z.number(),
+//             .sObject({
+//               val: z.sNumber(),
 //             })
 //             .nonstrict(),
 //         })
@@ -159,9 +159,9 @@ test("recursion involving union type", () => {
 //     subcategories: Category[];
 //   }
 
-//   const Category: z.ZodType<Category> = z.late.object(() => ({
-//     name: z.string(),
-//     subcategories: z.array(Category),
+//   const Category: z.ZodType<Category> = z.late.sObject(() => ({
+//     name: z.sString(),
+//     subcategories: z.sArray(Category),
 //   }));
 
 //   const untypedCategory: any = {
@@ -173,19 +173,19 @@ test("recursion involving union type", () => {
 // });
 
 // test("self recursion with base type", () => {
-//   const BaseCategory = z.object({
-//     name: z.string(),
+//   const BaseCategory = z.sObject({
+//     name: z.sString(),
 //   });
 //   type BaseCategory = z.infer<typeof BaseCategory>;
 
 //   type Category = BaseCategory & { subcategories: Category[] };
 
 //   const Category: z.ZodType<Category> = z.late
-//     .object(() => ({
-//       subcategories: z.array(Category),
+//     .sObject(() => ({
+//       subcategories: z.sArray(Category),
 //     }))
 //     .extend({
-//       name: z.string(),
+//       name: z.sString(),
 //     });
 
 //   const untypedCategory: any = {

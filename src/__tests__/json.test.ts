@@ -7,9 +7,9 @@ import * as z from "../index";
 const isDeno = typeof Deno === "object";
 
 test("overload types", () => {
-  const schema = z.string().json();
+  const schema = z.sString().json();
   z.util.assertEqual<typeof schema, z.ZodString>(true);
-  const schema2 = z.string().json(z.number());
+  const schema2 = z.sString().json(z.sNumber());
   z.util.assertEqual<
     typeof schema2,
     z.ZodPipeline<z.ZodEffects<z.ZodString, any, string>, z.ZodNumber>
@@ -18,9 +18,9 @@ test("overload types", () => {
   z.util.assertEqual<number, typeof r2>(true);
 });
 test("parse string to json", async () => {
-  const Env = z.object({
-    myJsonConfig: z.string().json(z.object({ foo: z.number() })),
-    someOtherValue: z.string(),
+  const Env = z.sObject({
+    myJsonConfig: z.sString().json(z.sObject({ foo: z.sNumber() })),
+    someOtherValue: z.sString(),
   });
 
   expect(
@@ -37,7 +37,7 @@ test("parse string to json", async () => {
     myJsonConfig: '{"foo": "not a number!"}',
     someOtherValue: null,
   });
-  expect(JSON.parse(JSON.stringify(invalidValues))).toEqual({
+  expect(JSON.parse(JSON.sStringify(invalidValues))).toEqual({
     success: false,
     data: {
       myJsonConfig: {
@@ -70,7 +70,7 @@ test("parse string to json", async () => {
     myJsonConfig: "This is not valid json",
     someOtherValue: null,
   });
-  expect(JSON.parse(JSON.stringify(invalidJsonSyntax))).toEqual({
+  expect(JSON.parse(JSON.sStringify(invalidJsonSyntax))).toEqual({
     success: false,
     data: {
       someOtherValue: null,
@@ -97,14 +97,14 @@ test("parse string to json", async () => {
 });
 
 test("no argument", () => {
-  const schema = z.string().json();
+  const schema = z.sString().json();
   z.util.assertEqual<typeof schema, z.ZodString>(true);
-  z.string().json().parse(`{}`);
-  z.string().json().parse(`null`);
-  z.string().json().parse(`12`);
-  z.string().json().parse(`{ "test": "test"}`);
-  expect(() => z.string().json().parse(`asdf`)).toThrow();
-  expect(() => z.string().json().parse(`{ "test": undefined }`)).toThrow();
-  expect(() => z.string().json().parse(`{ "test": 12n }`)).toThrow();
-  expect(() => z.string().json().parse(`{ test: "test" }`)).toThrow();
+  z.sString().json().parse(`{}`);
+  z.sString().json().parse(`null`);
+  z.sString().json().parse(`12`);
+  z.sString().json().parse(`{ "test": "test"}`);
+  expect(() => z.sString().json().parse(`asdf`)).toThrow();
+  expect(() => z.sString().json().parse(`{ "test": undefined }`)).toThrow();
+  expect(() => z.sString().json().parse(`{ "test": 12n }`)).toThrow();
+  expect(() => z.sString().json().parse(`{ test: "test" }`)).toThrow();
 });

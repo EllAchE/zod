@@ -4,7 +4,7 @@ import { expect, test } from "@jest/globals";
 import * as z from "../index";
 
 test("string coercion", () => {
-  const schema = z.coerce.string();
+  const schema = z.coerce.sString();
   expect(schema.parse("sup")).toEqual("sup");
   expect(schema.parse("")).toEqual("");
   expect(schema.parse(12)).toEqual("12");
@@ -28,7 +28,7 @@ test("string coercion", () => {
 });
 
 test("number coercion", () => {
-  const schema = z.coerce.number();
+  const schema = z.coerce.sNumber();
   expect(schema.parse("12")).toEqual(12);
   expect(schema.parse("0")).toEqual(0);
   expect(schema.parse("-12")).toEqual(-12);

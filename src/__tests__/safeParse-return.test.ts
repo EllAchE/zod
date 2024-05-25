@@ -1,10 +1,10 @@
 import * as z from "../index";
 
-const simpleSchema = z.string()
-const transformSchema = z.object({
-    a: z.number().transform(() => 2),
-    b: z.string(),
-    c: z.string().transform(() => 4)
+const simpleSchema = z.sString()
+const transformSchema = z.sObject({
+    a: z.sNumber().transform(() => 2),
+    b: z.sString(),
+    c: z.sString().transform(() => 4)
 }) 
 
 test("safeParse returns data when parse fails", () => {

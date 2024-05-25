@@ -7,12 +7,12 @@ import * as z from "../index";
 const booleanRecord = z.record(z.boolean());
 type booleanRecord = z.infer<typeof booleanRecord>;
 
-const recordWithEnumKeys = z.record(z.enum(["Tuna", "Salmon"]), z.string());
+const recordWithEnumKeys = z.record(z.enum(["Tuna", "Salmon"]), z.sString());
 type recordWithEnumKeys = z.infer<typeof recordWithEnumKeys>;
 
 const recordWithLiteralKeys = z.record(
-  z.union([z.literal("Tuna"), z.literal("Salmon")]),
-  z.string()
+  z.sUnion([z.literal("Tuna"), z.literal("Salmon")]),
+  z.sString()
 );
 type recordWithLiteralKeys = z.infer<typeof recordWithLiteralKeys>;
 
@@ -127,7 +127,7 @@ test("key schema", () => {
 // });
 
 test("key and value getters", () => {
-  const rec = z.record(z.string(), z.number());
+  const rec = z.record(z.sString(), z.sNumber());
 
   rec.keySchema.parse("asdf");
   rec.valueSchema.parse(1234);
@@ -136,8 +136,8 @@ test("key and value getters", () => {
 
 test("is not vulnerable to prototype pollution", async () => {
   const rec = z.record(
-    z.object({
-      a: z.string(),
+    z.sObject({
+      a: z.sString(),
     })
   );
 
@@ -180,10 +180,10 @@ test("dont remove undefined values", () => {
 });
 
 test("allow undefined values", () => {
-  const schema = z.record(z.string(), z.undefined());
+  const schema = z.record(z.sString(), z.undefined());
 
   expect(
-    util.objectKeys(
+    util.sObjectKeys(
       schema.parse({
         _test: undefined,
       })
@@ -192,10 +192,10 @@ test("allow undefined values", () => {
 });
 
 test("allow undefined values async", async () => {
-  const schemaAsync = z.record(z.string().optional()).refine(async () => true);
+  const schemaAsync = z.record(z.sString().optional()).refine(async () => true);
 
   expect(
-    util.objectKeys(
+    util.sObjectKeys(
       await schemaAsync.parseAsync({
         _test: undefined,
       })

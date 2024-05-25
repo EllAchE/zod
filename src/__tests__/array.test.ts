@@ -4,18 +4,18 @@ import { expect, test } from "@jest/globals";
 import { util } from "../helpers";
 import * as z from "../index";
 
-const minTwo = z.string().array().min(2);
-const maxTwo = z.string().array().max(2);
-const justTwo = z.string().array().length(2);
-const intNum = z.string().array().nonempty();
-const nonEmptyMax = z.string().array().nonempty().max(2);
-const unique = z.string().array().unique();
+const minTwo = z.sString().sArray().min(2);
+const maxTwo = z.sString().sArray().max(2);
+const justTwo = z.sString().sArray().length(2);
+const intNum = z.sString().sArray().nonempty();
+const nonEmptyMax = z.sString().sArray().nonempty().max(2);
+const unique = z.sString().sArray().unique();
 const uniqueArrayOfObjects = z
-  .array(z.object({ name: z.string() }))
+  .sArray(z.sObject({ name: z.sString() }))
   .unique({ identifier: (item) => item.name });
 
 type t1 = z.infer<typeof nonEmptyMax>;
-util.assertEqual<[string, ...string[]], t1>(true);
+util.assertEqual<[string, ...sString[]], t1>(true);
 
 type t2 = z.infer<typeof minTwo>;
 util.assertEqual<string[], t2>(true);
@@ -51,7 +51,7 @@ test("failing validations", () => {
 test("parse empty array in nonempty", () => {
   expect(() =>
     z
-      .array(z.string())
+      .sArray(z.sString())
       .nonempty()
       .parse([] as any)
   ).toThrow();
@@ -63,8 +63,8 @@ test("get element", () => {
 });
 
 test("continue parsing despite array size error", () => {
-  const schema = z.object({
-    people: z.string().array().min(2),
+  const schema = z.sObject({
+    people: z.sString().sArray().min(2),
   });
 
   const result = schema.safeParse({
@@ -77,13 +77,13 @@ test("continue parsing despite array size error", () => {
 });
 
 test("parse should fail given sparse array", () => {
-  const schema = z.array(z.string()).nonempty().min(1).max(3);
+  const schema = z.sArray(z.sString()).nonempty().min(1).max(3);
 
   expect(() => schema.parse(new Array(3))).toThrow();
 });
 
 test("continue parsing despite array of primitives uniqueness error", () => {
-  const schema = z.number().array().unique();
+  const schema = z.sNumber().sArray().unique();
 
   const result = schema.safeParse([1, 1, 2, 2, 3]);
 
@@ -95,7 +95,7 @@ test("continue parsing despite array of primitives uniqueness error", () => {
 });
 
 test("continue parsing despite array of objects uniqueness error", () => {
-  const schema = z.array(z.object({ name: z.string() })).unique({
+  const schema = z.sArray(z.sObject({ name: z.sString() })).unique({
     identifier: (item) => item.name,
     showDuplicates: true,
   });
@@ -114,7 +114,7 @@ test("continue parsing despite array of objects uniqueness error", () => {
 });
 
 test("returns custom error message without duplicate elements", () => {
-  const schema = z.number().array().unique({ message: "Custom message" });
+  const schema = z.sNumber().sArray().unique({ message: "Custom message" });
 
   const result = schema.safeParse([1, 1, 2, 2, 3]);
 
@@ -126,7 +126,7 @@ test("returns custom error message without duplicate elements", () => {
 });
 
 test("returns error message with duplicate elements", () => {
-  const schema = z.number().array().unique({ showDuplicates: true });
+  const schema = z.sNumber().sArray().unique({ showDuplicates: true });
 
   const result = schema.safeParse([1, 1, 2, 2, 3]);
 
@@ -139,8 +139,8 @@ test("returns error message with duplicate elements", () => {
 
 test("returns custom error message with duplicate elements", () => {
   const schema = z
-    .number()
-    .array()
+    .sNumber()
+    .sArray()
     .unique({
       message: (item) => `Custom message: '${item}' are not unique`,
       showDuplicates: true,

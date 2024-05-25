@@ -8,8 +8,8 @@ test("error creation", () => {
   const err1 = ZodError.create([]);
   err1.addIssue({
     code: ZodIssueCode.invalid_type,
-    expected: z.ZodParsedType.object,
-    received: z.ZodParsedType.string,
+    expected: z.ZodParsedType.sObject,
+    received: z.ZodParsedType.sString,
     path: [],
     message: "",
     fatal: true,
@@ -39,7 +39,7 @@ const errorMap: z.ZodErrorMap = (error, ctx) => {
 
 test("type error with custom error map", () => {
   try {
-    z.string().parse(234, { errorMap });
+    z.sString().parse(234, { errorMap });
   } catch (err) {
     const zerr: z.ZodError = err as any;
 
@@ -50,7 +50,7 @@ test("type error with custom error map", () => {
 
 test("refinement fail with params", () => {
   try {
-    z.number()
+    z.sNumber()
       .refine((val) => val >= 3, {
         params: { minimum: 3 },
       })
@@ -64,7 +64,7 @@ test("refinement fail with params", () => {
 
 test("custom error with custom errormap", () => {
   try {
-    z.string()
+    z.sString()
       .refine((val) => val.length > 12, {
         params: { minimum: 13 },
         message: "override",
@@ -78,7 +78,7 @@ test("custom error with custom errormap", () => {
 
 test("default error message", () => {
   try {
-    z.number()
+    z.sNumber()
       .refine((x) => x > 3)
       .parse(2);
   } catch (err) {
@@ -90,7 +90,7 @@ test("default error message", () => {
 
 test("override error in refine", () => {
   try {
-    z.number()
+    z.sNumber()
       .refine((x) => x > 3, "override")
       .parse(2);
   } catch (err) {
@@ -102,7 +102,7 @@ test("override error in refine", () => {
 
 test("override error in refinement", () => {
   try {
-    z.number()
+    z.sNumber()
       .refine((x) => x > 3, {
         message: "override",
       })
@@ -116,14 +116,14 @@ test("override error in refinement", () => {
 
 test("array minimum", () => {
   try {
-    z.array(z.string()).min(3, "tooshort").parse(["asdf", "qwer"]);
+    z.sArray(z.sString()).min(3, "tooshort").parse(["asdf", "qwer"]);
   } catch (err) {
     const zerr: ZodError = err as any;
     expect(zerr.issues[0].code).toEqual(ZodIssueCode.too_small);
     expect(zerr.issues[0].message).toEqual("tooshort");
   }
   try {
-    z.array(z.string()).min(3).parse(["asdf", "qwer"]);
+    z.sArray(z.sString()).min(3).parse(["asdf", "qwer"]);
   } catch (err) {
     const zerr: ZodError = err as any;
     expect(zerr.issues[0].code).toEqual(ZodIssueCode.too_small);
@@ -138,14 +138,14 @@ test("array minimum", () => {
 //   // expect.assertions(2);
 
 //   const p1 = z
-//     .union([z.string(), z.number().refine((x) => x > 0)])
+//     .sUnion([z.sString(), z.sNumber().refine((x) => x > 0)])
 //     .safeParse(-3.2);
 
 //   if (p1.success === true) throw new Error();
 //   expect(p1.success).toBe(false);
 //   expect(p1.error.issues[0].code).toEqual(ZodIssueCode.custom);
 
-//   const p2 = z.union([z.string(), z.number()]).safeParse(false);
+//   const p2 = z.sUnion([z.sString(), z.sNumber()]).safeParse(false);
 //   // .catch(err => expect(err.issues[0].code).toEqual(ZodIssueCode.invalid_union));
 //   if (p2.success === true) throw new Error();
 //   expect(p2.success).toBe(false);
@@ -153,8 +153,8 @@ test("array minimum", () => {
 // });
 
 test("custom path in custom error map", () => {
-  const schema = z.object({
-    items: z.array(z.string()).refine((data) => data.length > 3, {
+  const schema = z.sObject({
+    items: z.sArray(z.sString()).refine((data) => data.length > 3, {
       path: ["items-too-few"],
     }),
   });
@@ -171,7 +171,7 @@ test("custom path in custom error map", () => {
 });
 
 test("error metadata from value", () => {
-  const dynamicRefine = z.string().refine(
+  const dynamicRefine = z.sString().refine(
     (val) => val === val.toUpperCase(),
     (val) => ({ params: { val } })
   );
@@ -189,9 +189,9 @@ test("error metadata from value", () => {
 
 // test("don't call refine after validation failed", () => {
 //   const asdf = z
-//     .union([
-//       z.number(),
-//       z.string().transform(z.number(), (val) => {
+//     .sUnion([
+//       z.sNumber(),
+//       z.sString().transform(z.sNumber(), (val) => {
 //         return parseFloat(val);
 //       }),
 //     ])
@@ -201,7 +201,7 @@ test("error metadata from value", () => {
 // });
 
 test("root level formatting", () => {
-  const schema = z.string().email();
+  const schema = z.sString().email();
   const result = schema.safeParse("asdfsdf");
   expect(result.success).toEqual(false);
   if (!result.success) {
@@ -211,9 +211,9 @@ test("root level formatting", () => {
 
 test("custom path", () => {
   const schema = z
-    .object({
-      password: z.string(),
-      confirm: z.string(),
+    .sObject({
+      password: z.sString(),
+      confirm: z.sString(),
     })
     .refine((val) => val.confirm === val.password, { path: ["confirm"] });
 
@@ -234,9 +234,9 @@ test("custom path", () => {
 
 test("custom path", () => {
   const schema = z
-    .object({
-      password: z.string().min(6),
-      confirm: z.string().min(6),
+    .sObject({
+      password: z.sString().min(6),
+      confirm: z.sString().min(6),
     })
     .refine((val) => val.confirm === val.password);
 
@@ -251,12 +251,12 @@ test("custom path", () => {
   }
 });
 
-const schema = z.object({
-  inner: z.object({
+const schema = z.sObject({
+  inner: z.sObject({
     name: z
-      .string()
+      .sString()
       .refine((val) => val.length > 5)
-      .array()
+      .sArray()
       .refine((val) => val.length <= 1),
   }),
 });
@@ -315,14 +315,14 @@ test("formatting", () => {
 });
 
 test("formatting with nullable and optional fields", () => {
-  const nameSchema = z.string().refine((val) => val.length > 5);
-  const schema = z.object({
-    nullableObject: z.object({ name: nameSchema }).nullable(),
-    nullableArray: z.array(nameSchema).nullable(),
-    nullableTuple: z.tuple([nameSchema, nameSchema, z.number()]).nullable(),
-    optionalObject: z.object({ name: nameSchema }).optional(),
-    optionalArray: z.array(nameSchema).optional(),
-    optionalTuple: z.tuple([nameSchema, nameSchema, z.number()]).optional(),
+  const nameSchema = z.sString().refine((val) => val.length > 5);
+  const schema = z.sObject({
+    nullableObject: z.sObject({ name: nameSchema }).nullable(),
+    nullableArray: z.sArray(nameSchema).nullable(),
+    nullableTuple: z.tuple([nameSchema, nameSchema, z.sNumber()]).nullable(),
+    optionalObject: z.sObject({ name: nameSchema }).optional(),
+    optionalArray: z.sArray(nameSchema).optional(),
+    optionalTuple: z.tuple([nameSchema, nameSchema, z.sNumber()]).optional(),
   });
   const invalidItem = {
     nullableObject: { name: "abcd" },
@@ -357,7 +357,7 @@ test("formatting with nullable and optional fields", () => {
 
 test("inferFlattenedErrors", () => {
   const schemaWithTransform = z
-    .object({ foo: z.string() })
+    .sObject({ foo: z.sString() })
     .transform((o) => ({ bar: o.foo }));
 
   const result = schemaWithTransform.safeParse({});
@@ -371,7 +371,7 @@ test("inferFlattenedErrors", () => {
   }
 });
 
-const stringWithCustomError = z.string({
+const stringWithCustomError = z.sString({
   errorMap: (issue, ctx) => ({
     message:
       issue.code === "invalid_type"
@@ -417,7 +417,7 @@ test("overrideErrorMap", () => {
 });
 
 test("invalid and required", () => {
-  const str = z.string({
+  const str = z.sString({
     invalid_type_error: "Invalid name",
     required_error: "Name is required",
   });
@@ -434,7 +434,7 @@ test("invalid and required", () => {
 });
 
 test("Fallback to default required error", () => {
-  const str = z.string({
+  const str = z.sString({
     invalid_type_error: "Invalid name",
     // required_error: "Name is required",
   });
@@ -448,7 +448,7 @@ test("Fallback to default required error", () => {
 
 test("invalid and required and errorMap", () => {
   expect(() => {
-    return z.string({
+    return z.sString({
       invalid_type_error: "Invalid name",
       required_error: "Name is required",
       errorMap: () => ({ message: "OVERRIDE" }),
@@ -458,7 +458,7 @@ test("invalid and required and errorMap", () => {
 
 test("strict error message", () => {
   const errorMsg = "Invalid object";
-  const obj = z.object({ x: z.string() }).strict(errorMsg);
+  const obj = z.sObject({ x: z.sString() }).strict(errorMsg);
   const result = obj.safeParse({ x: "a", y: "b" });
   expect(result.success).toEqual(false);
   if (!result.success) {
@@ -564,7 +564,7 @@ test("enum with message returns the custom error message", () => {
 });
 
 test("when the message is falsy, it is used as is provided", () => {
-  const schema = z.string().max(1, { message: "" });
+  const schema = z.sString().max(1, { message: "" });
   const result = schema.safeParse("asdf");
   expect(result.success).toEqual(false);
   if (!result.success) {
@@ -574,9 +574,9 @@ test("when the message is falsy, it is used as is provided", () => {
 
 // test("dont short circuit on continuable errors", () => {
 //   const user = z
-//     .object({
-//       password: z.string().min(6),
-//       confirm: z.string(),
+//     .sObject({
+//       password: z.sString().min(6),
+//       confirm: z.sString(),
 //     })
 //     .refine((data) => data.password === data.confirm, {
 //       message: "Passwords don't match",

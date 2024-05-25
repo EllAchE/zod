@@ -3,33 +3,33 @@ import { expect, test } from "@jest/globals";
 
 import * as z from "../index";
 
-const gtFive = z.number().gt(5);
-const gteFive = z.number().gte(5);
-const minFive = z.number().min(5);
-const ltFive = z.number().lt(5);
-const lteFive = z.number().lte(5);
-const maxFive = z.number().max(5);
-const intNum = z.number().int();
-const positive = z.number().positive();
-const negative = z.number().negative();
-const nonpositive = z.number().nonpositive();
-const nonnegative = z.number().nonnegative();
-const multipleOfFive = z.number().multipleOf(5);
-const multipleOfNegativeFive = z.number().multipleOf(-5);
-const finite = z.number().finite();
-const safe = z.number().safe();
-const stepPointOne = z.number().step(0.1);
-const stepPointZeroZeroZeroOne = z.number().step(0.0001);
-const stepSixPointFour = z.number().step(6.4);
+const gtFive = z.sNumber().gt(5);
+const gteFive = z.sNumber().gte(5);
+const minFive = z.sNumber().min(5);
+const ltFive = z.sNumber().lt(5);
+const lteFive = z.sNumber().lte(5);
+const maxFive = z.sNumber().max(5);
+const intNum = z.sNumber().int();
+const positive = z.sNumber().positive();
+const negative = z.sNumber().negative();
+const nonpositive = z.sNumber().nonpositive();
+const nonnegative = z.sNumber().nonnegative();
+const multipleOfFive = z.sNumber().multipleOf(5);
+const multipleOfNegativeFive = z.sNumber().multipleOf(-5);
+const finite = z.sNumber().finite();
+const safe = z.sNumber().safe();
+const stepPointOne = z.sNumber().step(0.1);
+const stepPointZeroZeroZeroOne = z.sNumber().step(0.0001);
+const stepSixPointFour = z.sNumber().step(6.4);
 
 test("passing validations", () => {
-  z.number().parse(1);
-  z.number().parse(1.5);
-  z.number().parse(0);
-  z.number().parse(-1.5);
-  z.number().parse(-1);
-  z.number().parse(Infinity);
-  z.number().parse(-Infinity);
+  z.sNumber().parse(1);
+  z.sNumber().parse(1.5);
+  z.sNumber().parse(0);
+  z.sNumber().parse(-1.5);
+  z.sNumber().parse(-1);
+  z.sNumber().parse(Infinity);
+  z.sNumber().parse(-Infinity);
   gtFive.parse(6);
   gtFive.parse(Infinity);
   gteFive.parse(5);
@@ -96,11 +96,11 @@ test("failing validations", () => {
 });
 
 test("parse NaN", () => {
-  expect(() => z.number().parse(NaN)).toThrow();
+  expect(() => z.sNumber().parse(NaN)).toThrow();
 });
 
 test("min max getters", () => {
-  expect(z.number().minValue).toBeNull;
+  expect(z.sNumber().minValue).toBeNull;
   expect(ltFive.minValue).toBeNull;
   expect(lteFive.minValue).toBeNull;
   expect(maxFive.minValue).toBeNull;
@@ -117,7 +117,7 @@ test("min max getters", () => {
   expect(nonnegative.minValue).toEqual(0);
   expect(safe.minValue).toEqual(Number.MIN_SAFE_INTEGER);
 
-  expect(z.number().maxValue).toBeNull;
+  expect(z.sNumber().maxValue).toBeNull;
   expect(gtFive.maxValue).toBeNull;
   expect(gteFive.maxValue).toBeNull;
   expect(minFive.maxValue).toBeNull;
@@ -136,8 +136,8 @@ test("min max getters", () => {
 });
 
 test("int getter", () => {
-  expect(z.number().isInt).toEqual(false);
-  expect(z.number().multipleOf(1.5).isInt).toEqual(false);
+  expect(z.sNumber().isInt).toEqual(false);
+  expect(z.sNumber().multipleOf(1.5).isInt).toEqual(false);
   expect(gtFive.isInt).toEqual(false);
   expect(gteFive.isInt).toEqual(false);
   expect(minFive.isInt).toEqual(false);
@@ -156,7 +156,7 @@ test("int getter", () => {
 });
 
 test("finite getter", () => {
-  expect(z.number().isFinite).toEqual(false);
+  expect(z.sNumber().isFinite).toEqual(false);
   expect(gtFive.isFinite).toEqual(false);
   expect(gteFive.isFinite).toEqual(false);
   expect(minFive.isFinite).toEqual(false);
@@ -171,6 +171,6 @@ test("finite getter", () => {
   expect(finite.isFinite).toEqual(true);
   expect(intNum.isFinite).toEqual(true);
   expect(multipleOfFive.isFinite).toEqual(true);
-  expect(z.number().min(5).max(10).isFinite).toEqual(true);
+  expect(z.sNumber().min(5).max(10).isFinite).toEqual(true);
   expect(safe.isFinite).toEqual(true);
 });

@@ -2,7 +2,7 @@
 import { expect, test } from "@jest/globals";
 
 import * as z from "../index";
-const stringSchema = z.string();
+const stringSchema = z.sString();
 
 test("safeparse fail", () => {
   const safe = stringSchema.safeParse(12);

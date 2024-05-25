@@ -6,16 +6,16 @@ import * as z from "../index";
 import { ZodError } from "../ZodError";
 
 const testTuple = z.tuple([
-  z.string(),
-  z.object({ name: z.literal("Rudy") }),
-  z.array(z.literal("blue")),
+  z.sString(),
+  z.sObject({ name: z.literal("Rudy") }),
+  z.sArray(z.literal("blue")),
 ]);
 const testData = ["asdf", { name: "Rudy" }, ["blue"]];
 const badData = [123, { name: "Rudy2" }, ["blue", "red"]];
 
 test("tuple inference", () => {
-  const args1 = z.tuple([z.string()]);
-  const returns1 = z.number();
+  const args1 = z.tuple([z.sString()]);
+  const returns1 = z.sNumber();
   const func1 = z.function(args1, returns1);
   type func1 = z.TypeOf<typeof func1>;
   util.assertEqual<func1, (k: string) => number>(true);
@@ -60,7 +60,7 @@ test("failed async validation", async () => {
 });
 
 test("tuple with transformers", () => {
-  const stringToNumber = z.string().transform((val) => val.length);
+  const stringToNumber = z.sString().transform((val) => val.length);
   const val = z.tuple([stringToNumber]);
 
   type t1 = z.input<typeof val>;
@@ -71,7 +71,7 @@ test("tuple with transformers", () => {
 });
 
 test("tuple with rest schema", () => {
-  const myTuple = z.tuple([z.string(), z.number()]).rest(z.boolean());
+  const myTuple = z.tuple([z.sString(), z.sNumber()]).rest(z.boolean());
   expect(myTuple.parse(["asdf", 1234, true, false, true])).toEqual([
     "asdf",
     1234,
@@ -94,7 +94,7 @@ test("parse should fail given sparse array as tuple", () => {
 
 // test('tuple with optional elements', () => {
 //   const result = z
-//     .tuple([z.string(), z.number().optional()])
+//     .tuple([z.sString(), z.sNumber().optional()])
 //     .safeParse(['asdf']);
 //   expect(result).toEqual(['asdf']);
 // });

@@ -19,7 +19,7 @@ export const crazySchema = z.object({
   // sumTransformer: z.transformer(z.array(z.number()), z.number(), (arg) => {
   //   return arg.reduce((a, b) => a + b, 0);
   // }),
-  sumMinLength: z.array(z.number()).refine((arg) => arg.length > 5),
+  sumMinLength: z.sArray(z.number()).refine((arg) => arg.length > 5),
   intersection: z.intersection(
     z.object({ p1: z.string().optional() }),
     z.object({ p1: z.number().optional() })
@@ -38,5 +38,5 @@ export const asyncCrazySchema = crazySchema.extend({
   //     return arg.reduce((a, b) => a + b, 0);
   //   }
   // ),
-  async_refine: z.array(z.number()).refine(async (arg) => arg.length > 5),
+  async_refine: z.sArray(z.sNumber()).refine(async (arg) => arg.length > 5),
 });

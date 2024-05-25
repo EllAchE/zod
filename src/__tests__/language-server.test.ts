@@ -1,5 +1,5 @@
 // @ts-ignore TS6133
-import { describe, expect, test } from "@jest/globals";
+import { test } from "@jest/globals";
 // import path from "path";
 // import { Node, Project, SyntaxKind } from "ts-morph";
 
@@ -17,7 +17,7 @@ test("", () => {});
 //   });
 //   const sourceFile = project.addSourceFileAtPath(filePath);
 
-//   test("works for object properties inferred from z.object()", () => {
+//   test("works for object properties inferred from z.sObject()", () => {
 //     // Find usage of Test.f1 property
 //     const instanceVariable =
 //       sourceFile.getVariableDeclarationOrThrow("instanceOfTest");
@@ -33,11 +33,11 @@ test("", () => {});
 //     );
 
 //     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     expect(definitionOfProperty?.getText()).toEqual("f1: z.sNumber()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 
-//   // test("works for first object properties inferred from z.object().merge()", () => {
+//   // test("works for first object properties inferred from z.sObject().merge()", () => {
 //   //   // Find usage of TestMerge.f1 property
 //   //   const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //   //     "instanceOfTestMerge"
@@ -54,11 +54,11 @@ test("", () => {});
 //   //   );
 
 //   //   // Assert that find definition returned the Zod definition of Test
-//   //   expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//   //   expect(definitionOfProperty?.getText()).toEqual("f1: z.sNumber()");
 //   //   expect(parentOfProperty?.getName()).toEqual("Test");
 //   // });
 
-//   // test("works for second object properties inferred from z.object().merge()", () => {
+//   // test("works for second object properties inferred from z.sObject().merge()", () => {
 //   //   // Find usage of TestMerge.f2 property
 //   //   const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //   //     "instanceOfTestMerge"
@@ -76,12 +76,12 @@ test("", () => {});
 
 //   //   // Assert that find definition returned the Zod definition of TestMerge
 //   //   expect(definitionOfProperty?.getText()).toEqual(
-//   //     "f2: z.string().optional()"
+//   //     "f2: z.sString().optional()"
 //   //   );
 //   //   expect(parentOfProperty?.getName()).toEqual("TestMerge");
 //   // });
 
-//   test("works for first object properties inferred from z.union()", () => {
+//   test("works for first object properties inferred from z.sUnion()", () => {
 //     // Find usage of TestUnion.f1 property
 //     const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //       "instanceOfTestUnion"
@@ -98,11 +98,11 @@ test("", () => {});
 //     );
 
 //     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     expect(definitionOfProperty?.getText()).toEqual("f1: z.sNumber()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 
-//   test("works for second object properties inferred from z.union()", () => {
+//   test("works for second object properties inferred from z.sUnion()", () => {
 //     // Find usage of TestUnion.f2 property
 //     const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //       "instanceOfTestUnion"
@@ -120,12 +120,12 @@ test("", () => {});
 
 //     // Assert that find definition returned the Zod definition of TestUnion
 //     expect(definitionOfProperty?.getText()).toEqual(
-//       "f2: z.string().optional()"
+//       "f2: z.sString().optional()"
 //     );
 //     expect(parentOfProperty?.getName()).toEqual("TestUnion");
 //   });
 
-//   test("works for object properties inferred from z.object().partial()", () => {
+//   test("works for object properties inferred from z.sObject().partial()", () => {
 //     // Find usage of TestPartial.f1 property
 //     const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //       "instanceOfTestPartial"
@@ -142,11 +142,11 @@ test("", () => {});
 //     );
 
 //     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     expect(definitionOfProperty?.getText()).toEqual("f1: z.sNumber()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 
-//   test("works for object properties inferred from z.object().pick()", () => {
+//   test("works for object properties inferred from z.sObject().pick()", () => {
 //     // Find usage of TestPick.f1 property
 //     const instanceVariable =
 //       sourceFile.getVariableDeclarationOrThrow("instanceOfTestPick");
@@ -162,11 +162,11 @@ test("", () => {});
 //     );
 
 //     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     expect(definitionOfProperty?.getText()).toEqual("f1: z.sNumber()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 
-//   test("works for object properties inferred from z.object().omit()", () => {
+//   test("works for object properties inferred from z.sObject().omit()", () => {
 //     // Find usage of TestOmit.f1 property
 //     const instanceVariable =
 //       sourceFile.getVariableDeclarationOrThrow("instanceOfTestOmit");
@@ -182,7 +182,7 @@ test("", () => {});
 //     );
 
 //     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     expect(definitionOfProperty?.getText()).toEqual("f1: z.sNumber()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 // });

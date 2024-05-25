@@ -5,9 +5,9 @@ import { util } from "../helpers";
 import * as z from "../index";
 
 test("type guard", () => {
-  const stringToNumber = z.string().transform((arg) => arg.length);
+  const stringToNumber = z.sString().transform((arg) => arg.length);
 
-  const s1 = z.object({
+  const s1 = z.sObject({
     stringToNumber,
   });
   type t1 = z.input<typeof s1>;
@@ -24,6 +24,6 @@ test("test this binding", () => {
     return predicate("hello");
   };
 
-  expect(callback((value) => z.string().safeParse(value).success)).toBe(true); // true
-  expect(callback((value) => z.string().safeParse(value).success)).toBe(true); // true
+  expect(callback((value) => z.sString().safeParse(value).success)).toBe(true); // true
+  expect(callback((value) => z.sString().safeParse(value).success)).toBe(true); // true
 });

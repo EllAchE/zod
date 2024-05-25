@@ -18,18 +18,18 @@ function checkErrors(a: z.ZodTypeAny, bad: any) {
 }
 
 test("Should have error messages appropriate for the underlying type", () => {
-  checkErrors(z.string().min(2), 1);
-  z.string().min(2).optional().parse(undefined);
-  checkErrors(z.number().gte(2), 1);
-  z.number().gte(2).optional().parse(undefined);
+  checkErrors(z.sString().min(2), 1);
+  z.sString().min(2).optional().parse(undefined);
+  checkErrors(z.sNumber().gte(2), 1);
+  z.sNumber().gte(2).optional().parse(undefined);
   checkErrors(z.boolean(), "");
   z.boolean().optional().parse(undefined);
   checkErrors(z.undefined(), null);
   z.undefined().optional().parse(undefined);
   checkErrors(z.null(), {});
   z.null().optional().parse(undefined);
-  checkErrors(z.object({}), 1);
-  z.object({}).optional().parse(undefined);
+  checkErrors(z.sObject({}), 1);
+  z.sObject({}).optional().parse(undefined);
   checkErrors(z.tuple([]), 1);
   z.tuple([]).optional().parse(undefined);
   checkErrors(z.unknown(), 1);
@@ -37,6 +37,6 @@ test("Should have error messages appropriate for the underlying type", () => {
 });
 
 test("unwrap", () => {
-  const unwrapped = z.string().optional().unwrap();
+  const unwrapped = z.sString().optional().unwrap();
   expect(unwrapped).toBeInstanceOf(z.ZodString);
 });

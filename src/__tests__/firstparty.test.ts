@@ -5,7 +5,7 @@ import { util } from "../helpers";
 import * as z from "../index";
 
 test("first party switch", () => {
-  const myType = z.string() as z.ZodFirstPartySchemaTypes;
+  const myType = z.sString() as z.ZodFirstPartySchemaTypes;
   const def = myType._def;
 
   switch (def.typeName) {

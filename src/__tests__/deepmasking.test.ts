@@ -1,5 +1,5 @@
 // @ts-ignore TS6133
-import { expect, test } from "@jest/globals";
+import { test } from "@jest/globals";
 
 import * as z from "../index";
 
@@ -7,18 +7,18 @@ test("test", () => {
   z;
 });
 
-// const fish = z.object({
-//   name: z.string(),
-//   props: z.object({
-//     color: z.string(),
-//     numScales: z.number(),
+// const fish = z.sObject({
+//   name: z.sString(),
+//   props: z.sObject({
+//     color: z.sString(),
+//     numScales: z.sNumber(),
 //   }),
 // });
 
 // const nonStrict = z
-//   .object({
-//     name: z.string(),
-//     color: z.string(),
+//   .sObject({
+//     name: z.sString(),
+//     color: z.sString(),
 //   })
 //   .nonstrict();
 
@@ -85,7 +85,7 @@ test("test", () => {
 // });
 
 // test('array masking', () => {
-//   const fishArray = z.array(fish);
+//   const fishArray = z.sArray(fish);
 //   const modFishArray = fishArray.pick({
 //     name: true,
 //     props: {
@@ -99,7 +99,7 @@ test("test", () => {
 // });
 
 // test('array masking', () => {
-//   const fishArray = z.array(fish);
+//   const fishArray = z.sArray(fish);
 //   const fail = () =>
 //     fishArray.pick({
 //       name: true,
@@ -111,7 +111,7 @@ test("test", () => {
 // });
 
 // test('array masking', () => {
-//   const fishArray = z.array(fish);
+//   const fishArray = z.sArray(fish);
 //   const fail = () =>
 //     fishArray.omit({
 //       whateve: true,
@@ -120,7 +120,7 @@ test("test", () => {
 // });
 
 // test('array masking', () => {
-//   const fishArray = z.array(fish);
+//   const fishArray = z.sArray(fish);
 //   const modFishList = fishArray.omit({
 //     name: true,
 //     props: {
@@ -134,13 +134,13 @@ test("test", () => {
 // });
 
 // test('primitive array masking', () => {
-//   const fishArray = z.array(z.number());
+//   const fishArray = z.sArray(z.sNumber());
 //   const fail = () => fishArray.pick({} as any);
 //   expect(fail).toThrow();
 // });
 
 // test('other array masking', () => {
-//   const fishArray = z.array(z.array(z.number()));
+//   const fishArray = z.sArray(z.sArray(z.sNumber()));
 //   const fail = () => fishArray.pick({} as any);
 //   expect(fail).toThrow();
 // });

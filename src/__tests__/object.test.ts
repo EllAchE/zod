@@ -4,11 +4,11 @@ import { expect, test } from "@jest/globals";
 import { util } from "../helpers";
 import * as z from "../index";
 
-const Test = z.object({
-  f1: z.number(),
-  f2: z.string().optional(),
-  f3: z.string().nullable(),
-  f4: z.array(z.object({ t: z.union([z.string(), z.boolean()]) })),
+const Test = z.sObject({
+  f1: z.sNumber(),
+  f2: z.sString().optional(),
+  f3: z.sString().nullable(),
+  f4: z.sArray(z.sObject({ t: z.sUnion([z.sString(), z.sBoolean()]) })),
 });
 type Test = z.infer<typeof Test>;
 
@@ -68,7 +68,7 @@ test("incorrect #1", () => {
 });
 
 test("nonstrict by default", () => {
-  z.object({ points: z.number() }).parse({
+  z.sObject({ points: z.sNumber() }).parse({
     points: 2314,
     unknown: "asdf",
   });
@@ -80,13 +80,13 @@ const data = {
 };
 
 test("strip by default", () => {
-  const val = z.object({ points: z.number() }).parse(data);
+  const val = z.sObject({ points: z.sNumber() }).parse(data);
   expect(val).toEqual({ points: 2314 });
 });
 
 test("unknownkeys override", () => {
   const val = z
-    .object({ points: z.number() })
+    .sObject({ points: z.sNumber() })
     .strict()
     .passthrough()
     .strip()
@@ -97,29 +97,29 @@ test("unknownkeys override", () => {
 });
 
 test("passthrough unknown", () => {
-  const val = z.object({ points: z.number() }).passthrough().parse(data);
+  const val = z.sObject({ points: z.sNumber() }).passthrough().parse(data);
 
   expect(val).toEqual(data);
 });
 
 test("strip unknown", () => {
-  const val = z.object({ points: z.number() }).strip().parse(data);
+  const val = z.sObject({ points: z.sNumber() }).strip().parse(data);
 
   expect(val).toEqual({ points: 2314 });
 });
 
 test("strict", () => {
-  const val = z.object({ points: z.number() }).strict().safeParse(data);
+  const val = z.sObject({ points: z.sNumber() }).strict().safeParse(data);
 
   expect(val.success).toEqual(false);
 });
 
 test("catchall inference", () => {
   const o1 = z
-    .object({
-      first: z.string(),
+    .sObject({
+      first: z.sString(),
     })
-    .catchall(z.number());
+    .catchall(z.sNumber());
 
   const d1 = o1.parse({ first: "asdf", num: 1243 });
   util.assertEqual<number, (typeof d1)["asdf"]>(true);
@@ -128,9 +128,9 @@ test("catchall inference", () => {
 
 test("catchall overrides strict", () => {
   const o1 = z
-    .object({ first: z.string().optional() })
+    .sObject({ first: z.sString().optional() })
     .strict()
-    .catchall(z.number());
+    .catchall(z.sNumber());
 
   // should run fine
   // setting a catchall overrides the unknownKeys behavior
@@ -148,11 +148,11 @@ test("catchall overrides strict", () => {
 
 test("catchall overrides strict", () => {
   const o1 = z
-    .object({
-      first: z.string(),
+    .sObject({
+      first: z.sString(),
     })
     .strict()
-    .catchall(z.number());
+    .catchall(z.sNumber());
 
   // should run fine
   // setting a catchall overrides the unknownKeys behavior
@@ -163,10 +163,10 @@ test("catchall overrides strict", () => {
 });
 
 test("test that optional keys are unset", async () => {
-  const SNamedEntity = z.object({
-    id: z.string(),
-    set: z.string().optional(),
-    unset: z.string().optional(),
+  const SNamedEntity = z.sObject({
+    id: z.sString(),
+    set: z.sString().optional(),
+    unset: z.sString().optional(),
   });
   const result = await SNamedEntity.parse({
     id: "asdf",
@@ -178,24 +178,24 @@ test("test that optional keys are unset", async () => {
 
 test("test catchall parsing", async () => {
   const result = z
-    .object({ name: z.string() })
-    .catchall(z.number())
+    .sObject({ name: z.sString() })
+    .catchall(z.sNumber())
     .parse({ name: "Foo", validExtraKey: 61 });
 
   expect(result).toEqual({ name: "Foo", validExtraKey: 61 });
 
   const result2 = z
-    .object({ name: z.string() })
-    .catchall(z.number())
+    .sObject({ name: z.sString() })
+    .catchall(z.sNumber())
     .safeParse({ name: "Foo", validExtraKey: 61, invalid: "asdf" });
 
   expect(result2.success).toEqual(false);
 });
 
 test("test nonexistent keys", async () => {
-  const Schema = z.union([
-    z.object({ a: z.string() }),
-    z.object({ b: z.number() }),
+  const Schema = z.sUnion([
+    z.sObject({ a: z.sString() }),
+    z.sObject({ b: z.sNumber() }),
   ]);
   const obj = { a: "A" };
   const result = await Schema.spa(obj); // Works with 1.11.10, breaks with 2.0.0-beta.21
@@ -203,12 +203,12 @@ test("test nonexistent keys", async () => {
 });
 
 test("test async union", async () => {
-  const Schema2 = z.union([
-    z.object({
-      ty: z.string(),
+  const Schema2 = z.sUnion([
+    z.sObject({
+      ty: z.sString(),
     }),
-    z.object({
-      ty: z.number(),
+    z.sObject({
+      ty: z.sNumber(),
     }),
   ]);
 
@@ -218,15 +218,15 @@ test("test async union", async () => {
 });
 
 test("test inferred merged type", async () => {
-  const asdf = z.object({ a: z.string() }).merge(z.object({ a: z.number() }));
+  const asdf = z.sObject({ a: z.sString() }).merge(z.sObject({ a: z.sNumber() }));
   type asdf = z.infer<typeof asdf>;
   util.assertEqual<asdf, { a: number }>(true);
 });
 
 test("inferred merged object type with optional properties", async () => {
   const Merged = z
-    .object({ a: z.string(), b: z.string().optional() })
-    .merge(z.object({ a: z.string().optional(), b: z.string() }));
+    .sObject({ a: z.sString(), b: z.sString().optional() })
+    .merge(z.sObject({ a: z.sString().optional(), b: z.sString() }));
   type Merged = z.infer<typeof Merged>;
   util.assertEqual<Merged, { a?: string; b: string }>(true);
   // todo
@@ -234,9 +234,9 @@ test("inferred merged object type with optional properties", async () => {
 });
 
 test("inferred unioned object type with optional properties", async () => {
-  const Unioned = z.union([
-    z.object({ a: z.string(), b: z.string().optional() }),
-    z.object({ a: z.string().optional(), b: z.string() }),
+  const Unioned = z.sUnion([
+    z.sObject({ a: z.sString(), b: z.sString().optional() }),
+    z.sObject({ a: z.sString().optional(), b: z.sString() }),
   ]);
   type Unioned = z.infer<typeof Unioned>;
   util.assertEqual<
@@ -246,7 +246,7 @@ test("inferred unioned object type with optional properties", async () => {
 });
 
 test("inferred enum type", async () => {
-  const Enum = z.object({ a: z.string(), b: z.string().optional() }).keyof();
+  const Enum = z.sObject({ a: z.sString(), b: z.sString().optional() }).keyof();
 
   expect(Enum.Values).toEqual({
     a: "a",
@@ -263,7 +263,7 @@ test("inferred enum type", async () => {
 
 test("inferred partial object type with optional properties", async () => {
   const Partial = z
-    .object({ a: z.string(), b: z.string().optional() })
+    .sObject({ a: z.sString(), b: z.sString().optional() })
     .partial();
   type Partial = z.infer<typeof Partial>;
   util.assertEqual<Partial, { a?: string; b?: string }>(true);
@@ -271,14 +271,14 @@ test("inferred partial object type with optional properties", async () => {
 
 test("inferred picked object type with optional properties", async () => {
   const Picked = z
-    .object({ a: z.string(), b: z.string().optional() })
+    .sObject({ a: z.sString(), b: z.sString().optional() })
     .pick({ b: true });
   type Picked = z.infer<typeof Picked>;
   util.assertEqual<Picked, { b?: string }>(true);
 });
 
 test("inferred type for unknown/any keys", () => {
-  const myType = z.object({
+  const myType = z.sObject({
     anyOptional: z.any().optional(),
     anyRequired: z.any(),
     unknownOptional: z.unknown().optional(),
@@ -297,8 +297,8 @@ test("inferred type for unknown/any keys", () => {
 });
 
 test("setKey", () => {
-  const base = z.object({ name: z.string() });
-  const withNewKey = base.setKey("age", z.number());
+  const base = z.sObject({ name: z.sString() });
+  const withNewKey = base.setKey("age", z.sNumber());
 
   type withNewKey = z.infer<typeof withNewKey>;
   util.assertEqual<withNewKey, { name: string; age: number }>(true);
@@ -307,7 +307,7 @@ test("setKey", () => {
 
 test("strictcreate", async () => {
   const strictObj = z.strictObject({
-    name: z.string(),
+    name: z.sString(),
   });
 
   const syncResult = strictObj.safeParse({ name: "asdf", unexpected: 13 });
@@ -319,9 +319,9 @@ test("strictcreate", async () => {
 
 test("object with refine", async () => {
   const schema = z
-    .object({
-      a: z.string().default("foo"),
-      b: z.number(),
+    .sObject({
+      a: z.sString().default("foo"),
+      b: z.sNumber(),
     })
     .refine(() => true);
   expect(schema.parse({ b: 5 })).toEqual({ b: 5, a: "foo" });
@@ -330,7 +330,7 @@ test("object with refine", async () => {
 });
 
 test("intersection of object with date", async () => {
-  const schema = z.object({
+  const schema = z.sObject({
     a: z.date(),
   });
   expect(schema.and(schema).parse({ a: new Date(1637353595983) })).toEqual({
@@ -342,7 +342,7 @@ test("intersection of object with date", async () => {
 
 test("intersection of object with refine with date", async () => {
   const schema = z
-    .object({
+    .sObject({
       a: z.date(),
     })
     .refine(() => true);
@@ -355,8 +355,8 @@ test("intersection of object with refine with date", async () => {
 
 test("constructor key", () => {
   const person = z
-    .object({
-      name: z.string(),
+    .sObject({
+      name: z.sString(),
     })
     .strict();
 
@@ -369,10 +369,10 @@ test("constructor key", () => {
 });
 
 test("constructor key", () => {
-  const Example = z.object({
-    prop: z.string(),
-    opt: z.number().optional(),
-    arr: z.string().array(),
+  const Example = z.sObject({
+    prop: z.sString(),
+    opt: z.sNumber().optional(),
+    arr: z.sString().sArray(),
   });
 
   type Example = z.infer<typeof Example>;
@@ -382,17 +382,17 @@ test("constructor key", () => {
 test("unknownkeys merging", () => {
   // This one is "strict"
   const schemaA = z
-    .object({
-      a: z.string(),
+    .sObject({
+      a: z.sString(),
     })
     .strict();
 
   // This one is "strip"
   const schemaB = z
-    .object({
-      b: z.string(),
+    .sObject({
+      b: z.sString(),
     })
-    .catchall(z.string());
+    .catchall(z.sString());
 
   const mergedSchema = schemaA.merge(schemaB);
   type mergedSchema = typeof mergedSchema;
@@ -403,13 +403,13 @@ test("unknownkeys merging", () => {
   expect(mergedSchema._def.catchall instanceof z.ZodString).toEqual(true);
 });
 
-const personToExtend = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
+const personToExtend = z.sObject({
+  firstName: z.sString(),
+  lastName: z.sString(),
 });
 
 test("extend() should return schema with new key", () => {
-  const PersonWithNickname = personToExtend.extend({ nickName: z.string() });
+  const PersonWithNickname = personToExtend.extend({ nickName: z.sString() });
   type PersonWithNickname = z.infer<typeof PersonWithNickname>;
 
   const expected = { firstName: "f", nickName: "n", lastName: "l" };
@@ -428,7 +428,7 @@ test("extend() should return schema with new key", () => {
 
 test("extend() should have power to override existing key", () => {
   const PersonWithNumberAsLastName = personToExtend.extend({
-    lastName: z.number(),
+    lastName: z.sNumber(),
   });
   type PersonWithNumberAsLastName = z.infer<typeof PersonWithNumberAsLastName>;
 
@@ -443,7 +443,7 @@ test("extend() should have power to override existing key", () => {
 });
 
 test("passthrough index signature", () => {
-  const a = z.object({ a: z.string() });
+  const a = z.sObject({ a: z.sString() });
   type a = z.infer<typeof a>;
   util.assertEqual<{ a: string }, a>(true);
   const b = a.passthrough();
@@ -463,10 +463,10 @@ test("xor", () => {
   type B = { name: string; b: number };
   type C = XOR<A, B>;
   type Outer = { data: C };
-  const Outer: z.ZodType<Outer> = z.object({
-    data: z.union([
-      z.object({ name: z.string(), a: z.number() }),
-      z.object({ name: z.string(), b: z.number() }),
+  const Outer: z.ZodType<Outer> = z.sObject({
+    data: z.sUnion([
+      z.sObject({ name: z.sString(), a: z.sNumber() }),
+      z.sObject({ name: z.sString(), b: z.sNumber() }),
     ]),
   });
 });

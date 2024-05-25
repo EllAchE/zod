@@ -7,8 +7,8 @@ test("valid", () => {
   expect(
     z
       .discriminatedUnion("type", [
-        z.object({ type: z.literal("a"), a: z.string() }),
-        z.object({ type: z.literal("b"), b: z.string() }),
+        z.sObject({ type: z.literal("a"), a: z.sString() }),
+        z.sObject({ type: z.literal("b"), b: z.sString() }),
       ])
       .parse({ type: "a", a: "abc" })
   ).toEqual({ type: "a", a: "abc" });
@@ -16,18 +16,18 @@ test("valid", () => {
 
 test("valid - discriminator value of various primitive types", () => {
   const schema = z.discriminatedUnion("type", [
-    z.object({ type: z.literal("1"), val: z.literal(1) }),
-    z.object({ type: z.literal(1), val: z.literal(2) }),
-    z.object({ type: z.literal(BigInt(1)), val: z.literal(3) }),
-    z.object({ type: z.literal("true"), val: z.literal(4) }),
-    z.object({ type: z.literal(true), val: z.literal(5) }),
-    z.object({ type: z.literal("null"), val: z.literal(6) }),
-    z.object({ type: z.literal(null), val: z.literal(7) }),
-    z.object({ type: z.literal("undefined"), val: z.literal(8) }),
-    z.object({ type: z.literal(undefined), val: z.literal(9) }),
-    z.object({ type: z.literal("transform"), val: z.literal(10) }),
-    z.object({ type: z.literal("refine"), val: z.literal(11) }),
-    z.object({ type: z.literal("superRefine"), val: z.literal(12) }),
+    z.sObject({ type: z.literal("1"), val: z.literal(1) }),
+    z.sObject({ type: z.literal(1), val: z.literal(2) }),
+    z.sObject({ type: z.literal(BigInt(1)), val: z.literal(3) }),
+    z.sObject({ type: z.literal("true"), val: z.literal(4) }),
+    z.sObject({ type: z.literal(true), val: z.literal(5) }),
+    z.sObject({ type: z.literal("null"), val: z.literal(6) }),
+    z.sObject({ type: z.literal(null), val: z.literal(7) }),
+    z.sObject({ type: z.literal("undefined"), val: z.literal(8) }),
+    z.sObject({ type: z.literal(undefined), val: z.literal(9) }),
+    z.sObject({ type: z.literal("transform"), val: z.literal(10) }),
+    z.sObject({ type: z.literal("refine"), val: z.literal(11) }),
+    z.sObject({ type: z.literal("superRefine"), val: z.literal(12) }),
   ]);
 
   expect(schema.parse({ type: "1", val: 1 })).toEqual({ type: "1", val: 1 });
@@ -65,15 +65,15 @@ test("valid - discriminator value of various primitive types", () => {
 test("invalid - null", () => {
   try {
     z.discriminatedUnion("type", [
-      z.object({ type: z.literal("a"), a: z.string() }),
-      z.object({ type: z.literal("b"), b: z.string() }),
+      z.sObject({ type: z.literal("a"), a: z.sString() }),
+      z.sObject({ type: z.literal("b"), b: z.sString() }),
     ]).parse(null);
     throw new Error();
   } catch (e: any) {
     expect(JSON.parse(e.message)).toEqual([
       {
         code: z.ZodIssueCode.invalid_type,
-        expected: z.ZodParsedType.object,
+        expected: z.ZodParsedType.sObject,
         message: "Expected object, received null",
         received: z.ZodParsedType.null,
         path: [],
@@ -85,8 +85,8 @@ test("invalid - null", () => {
 test("invalid discriminator value", () => {
   try {
     z.discriminatedUnion("type", [
-      z.object({ type: z.literal("a"), a: z.string() }),
-      z.object({ type: z.literal("b"), b: z.string() }),
+      z.sObject({ type: z.literal("a"), a: z.sString() }),
+      z.sObject({ type: z.literal("b"), b: z.sString() }),
     ]).parse({ type: "x", a: "abc" });
     throw new Error();
   } catch (e: any) {
@@ -104,15 +104,15 @@ test("invalid discriminator value", () => {
 test("valid discriminator value, invalid data", () => {
   try {
     z.discriminatedUnion("type", [
-      z.object({ type: z.literal("a"), a: z.string() }),
-      z.object({ type: z.literal("b"), b: z.string() }),
+      z.sObject({ type: z.literal("a"), a: z.sString() }),
+      z.sObject({ type: z.literal("b"), b: z.sString() }),
     ]).parse({ type: "a", b: "abc" });
     throw new Error();
   } catch (e: any) {
     expect(JSON.parse(e.message)).toEqual([
       {
         code: z.ZodIssueCode.invalid_type,
-        expected: z.ZodParsedType.string,
+        expected: z.ZodParsedType.sString,
         message: "Required",
         path: ["a"],
         received: z.ZodParsedType.undefined,
@@ -124,8 +124,8 @@ test("valid discriminator value, invalid data", () => {
 test("wrong schema - missing discriminator", () => {
   try {
     z.discriminatedUnion("type", [
-      z.object({ type: z.literal("a"), a: z.string() }),
-      z.object({ b: z.string() }) as any,
+      z.sObject({ type: z.literal("a"), a: z.sString() }),
+      z.sObject({ b: z.sString() }) as any,
     ]);
     throw new Error();
   } catch (e: any) {
@@ -136,8 +136,8 @@ test("wrong schema - missing discriminator", () => {
 test("wrong schema - duplicate discriminator values", () => {
   try {
     z.discriminatedUnion("type", [
-      z.object({ type: z.literal("a"), a: z.string() }),
-      z.object({ type: z.literal("a"), b: z.string() }),
+      z.sObject({ type: z.literal("a"), a: z.sString() }),
+      z.sObject({ type: z.literal("a"), b: z.sString() }),
     ]);
     throw new Error();
   } catch (e: any) {
@@ -149,16 +149,16 @@ test("async - valid", async () => {
   expect(
     await z
       .discriminatedUnion("type", [
-        z.object({
+        z.sObject({
           type: z.literal("a"),
           a: z
-            .string()
+            .sString()
             .refine(async () => true)
             .transform(async (val) => Number(val)),
         }),
-        z.object({
+        z.sObject({
           type: z.literal("b"),
-          b: z.string(),
+          b: z.sString(),
         }),
       ])
       .parseAsync({ type: "a", a: "1" })
@@ -169,16 +169,16 @@ test("async - invalid", async () => {
   try {
     await z
       .discriminatedUnion("type", [
-        z.object({
+        z.sObject({
           type: z.literal("a"),
           a: z
-            .string()
+            .sString()
             .refine(async () => true)
             .transform(async (val) => val),
         }),
-        z.object({
+        z.sObject({
           type: z.literal("b"),
-          b: z.string(),
+          b: z.sString(),
         }),
       ])
       .parseAsync({ type: "a", a: 1 });
@@ -198,17 +198,17 @@ test("async - invalid", async () => {
 
 test("valid - literals with .default or .preprocess", () => {
   const schema = z.discriminatedUnion("type", [
-    z.object({
+    z.sObject({
       type: z.literal("foo").default("foo"),
-      a: z.string(),
+      a: z.sString(),
     }),
-    z.object({
+    z.sObject({
       type: z.literal("custom"),
-      method: z.string(),
+      method: z.sString(),
     }),
-    z.object({
+    z.sObject({
       type: z.preprocess((val) => String(val), z.literal("bar")),
-      c: z.string(),
+      c: z.sString(),
     }),
   ]);
   expect(schema.parse({ type: "foo", a: "foo" })).toEqual({
@@ -224,15 +224,15 @@ test("enum and nativeEnum", () => {
   }
 
   const schema = z.discriminatedUnion("key", [
-    z.object({
+    z.sObject({
       key: z.literal("a"),
       // Add other properties specific to this option
     }),
-    z.object({
+    z.sObject({
       key: z.enum(["b", "c"]),
       // Add other properties specific to this option
     }),
-    z.object({
+    z.sObject({
       key: z.nativeEnum(MyEnum),
       // Add other properties specific to this option
     }),
@@ -250,11 +250,11 @@ test("enum and nativeEnum", () => {
 
 test("branded", () => {
   const schema = z.discriminatedUnion("key", [
-    z.object({
+    z.sObject({
       key: z.literal("a"),
       // Add other properties specific to this option
     }),
-    z.object({
+    z.sObject({
       key: z.literal("b").brand("asdfaf"),
       // Add other properties specific to this option
     }),
@@ -271,11 +271,11 @@ test("branded", () => {
 
 test("optional and nullable", () => {
   const schema = z.discriminatedUnion("key", [
-    z.object({
+    z.sObject({
       key: z.literal("a").optional(),
       a: z.literal(true),
     }),
-    z.object({
+    z.sObject({
       key: z.literal("b").nullable(),
       b: z.literal(true),
       // Add other properties specific to this option

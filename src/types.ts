@@ -1447,7 +1447,7 @@ export class ZodString<Output = string | unknown, Input = Output> extends ZodTyp
     validation: StringValidation,
     message?: errorUtil.ErrMessage
   ) {
-    return this.refinement((data) => regex.test(data as string), {
+    return this.refinement((data) => regex.test(data as unknown as string), {
       validation,
       code: ZodIssueCode.invalid_string,
       ...errorUtil.errToObj(message),
@@ -1617,7 +1617,7 @@ export class ZodString<Output = string | unknown, Input = Output> extends ZodTyp
     }
     const schema = this.transform((val, ctx) => {
       try {
-        return JSON.parse(val as string);
+        return JSON.parse(val as unknown as string);
       } catch (error: unknown) {
         ctx.addIssue({
           code: ZodIssueCode.invalid_string,
@@ -3544,7 +3544,6 @@ export type deoptional<T extends ZodTypeAny> = T extends ZodOptional<infer U>
 
 export type SomeZodObject = ZodObject<
   ZodRawShape,
-  false,
   UnknownKeysParam,
   ZodTypeAny
 >;
@@ -3585,13 +3584,12 @@ function deepPartialify(schema: ZodTypeAny): any {
 
 export class ZodObject<
   T extends ZodRawShape,
-  StrictFlag extends boolean = false,
   UnknownKeys extends UnknownKeysParam = UnknownKeysParam,
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<T, Catchall, UnknownKeys>,
   Input = objectInputType<T, Catchall, UnknownKeys>,
 // > extends ZodType<Output, ZodObjectDef<T, UnknownKeys, Catchall>, Input> {
-> extends ZodType<StrictFlag extends false ? unknown : Output, ZodObjectDef<T, UnknownKeys, Catchall>,  StrictFlag extends false ? unknown : Input> {
+> extends ZodType<Output, ZodObjectDef<T, UnknownKeys, Catchall>,  Input> {
 // > extends ZodType<unknown, ZodObjectDef<T, UnknownKeys, Catchall>,  unknown> {
   private _cached: { shape: T; keys: string[] } | null = null;
 
@@ -3714,7 +3712,7 @@ export class ZodObject<
     return this._def.shape();
   }
 
-  strict(message?: errorUtil.ErrMessage): ZodObject<T, false, "strict", Catchall> {
+  strict(message?: errorUtil.ErrMessage): ZodObject<T, "strict", Catchall> {
     errorUtil.errToObj;
     return new ZodObject({
       ...this._def,
@@ -3737,14 +3735,14 @@ export class ZodObject<
     }) as any;
   }
 
-  strip(): ZodObject<T, false, "strip", Catchall> {
+  strip(): ZodObject<T, "strip", Catchall> {
     return new ZodObject({
       ...this._def,
       unknownKeys: "strip",
     }) as any;
   }
 
-  passthrough(): ZodObject<T, false, "passthrough", Catchall> {
+  passthrough(): ZodObject<T, "passthrough", Catchall> {
     return new ZodObject({
       ...this._def,
       unknownKeys: "passthrough",
@@ -3776,10 +3774,10 @@ export class ZodObject<
   //   };
   extend<Augmentation extends ZodRawShape>(
     augmentation: Augmentation & Partial<{ [k in keyof T]: unknown }>
-  ): ZodObject<objectUtil.extendShape<T, Augmentation>, false, UnknownKeys, Catchall>;
+  ): ZodObject<objectUtil.extendShape<T, Augmentation>, UnknownKeys, Catchall>;
   extend<Augmentation extends ZodRawShape>(
     augmentation: Augmentation
-  ): ZodObject<objectUtil.extendShape<T, Augmentation>, false, UnknownKeys, Catchall>;
+  ): ZodObject<objectUtil.extendShape<T, Augmentation>, UnknownKeys, Catchall>;
   extend(augmentation: ZodRawShape) {
     return new ZodObject({
       ...this._def,
@@ -3835,7 +3833,7 @@ export class ZodObject<
   merge<Incoming extends AnyZodObject, Augmentation extends Incoming["shape"]>(
     merging: Incoming
   ): ZodObject<
-    objectUtil.extendShape<T, Augmentation>, false,
+    objectUtil.extendShape<T, Augmentation>,
     Incoming["_def"]["unknownKeys"],
     Incoming["_def"]["catchall"]
   > {
@@ -3889,7 +3887,7 @@ export class ZodObject<
   setKey<Key extends string, Schema extends ZodTypeAny>(
     key: Key,
     schema: Schema
-  ): ZodObject<T & { [k in Key]: Schema }, false, UnknownKeys, Catchall> {
+  ): ZodObject<T & { [k in Key]: Schema }, UnknownKeys, Catchall> {
     return this.augment({ [key]: schema }) as any;
   }
   // merge<Incoming extends AnyZodObject>(
@@ -3916,7 +3914,7 @@ export class ZodObject<
 
   catchall<Index extends ZodTypeAny>(
     index: Index
-  ): ZodObject<T, false, UnknownKeys, Index> {
+  ): ZodObject<T, UnknownKeys, Index> {
     return new ZodObject({
       ...this._def,
       catchall: index,
@@ -3925,7 +3923,7 @@ export class ZodObject<
 
   pick<Mask extends util.Exactly<{ [k in keyof T]?: true }, Mask>>(
     mask: Mask
-  ): ZodObject<Pick<T, Extract<keyof T, keyof Mask>>, false, UnknownKeys, Catchall> {
+  ): ZodObject<Pick<T, Extract<keyof T, keyof Mask>>, UnknownKeys, Catchall> {
     const shape: any = {};
 
     util.objectKeys(mask).forEach((key) => {
@@ -3942,7 +3940,7 @@ export class ZodObject<
 
   omit<Mask extends util.Exactly<{ [k in keyof T]?: true }, Mask>>(
     mask: Mask
-  ): ZodObject<Omit<T, keyof Mask>, false, UnknownKeys, Catchall> {
+  ): ZodObject<Omit<T, keyof Mask>, UnknownKeys, Catchall> {
     const shape: any = {};
 
     util.objectKeys(this.shape).forEach((key) => {
@@ -3965,7 +3963,7 @@ export class ZodObject<
   }
 
   partial(): ZodObject<
-    { [k in keyof T]: ZodOptional<T[k]> }, false,
+    { [k in keyof T]: ZodOptional<T[k]> },
     UnknownKeys,
     Catchall
   >;
@@ -3974,7 +3972,7 @@ export class ZodObject<
   ): ZodObject<
     objectUtil.noNever<{
       [k in keyof T]: k extends keyof Mask ? ZodOptional<T[k]> : T[k];
-    }>, false,
+    }>, 
     UnknownKeys,
     Catchall
   >;
@@ -3998,7 +3996,7 @@ export class ZodObject<
   }
 
   required(): ZodObject<
-    { [k in keyof T]: deoptional<T[k]> }, false,
+    { [k in keyof T]: deoptional<T[k]> },
     UnknownKeys,
     Catchall
   >;
@@ -4007,7 +4005,7 @@ export class ZodObject<
   ): ZodObject<
     objectUtil.noNever<{
       [k in keyof T]: k extends keyof Mask ? deoptional<T[k]> : T[k];
-    }>, false,
+    }>, 
     UnknownKeys,
     Catchall
   >;
@@ -4045,7 +4043,7 @@ export class ZodObject<
     shape: T,
     params?: RawCreateParams
   ): ZodObject<
-    T, false,
+    T,
     "strip",
     ZodTypeAny,
     objectOutputType<T, ZodTypeAny, "strip">,
@@ -4063,7 +4061,7 @@ export class ZodObject<
   static strictCreate<T extends ZodRawShape>(
     shape: T,
     params?: RawCreateParams
-  ): ZodObject<T, false, "strict"> {
+  ): ZodObject<T, "strict"> {
     return new ZodObject({
       shape: () => shape,
       unknownKeys: "strict",
@@ -4076,7 +4074,7 @@ export class ZodObject<
   static lazycreate<T extends ZodRawShape>(
     shape: () => T,
     params?: RawCreateParams
-  ): ZodObject<T, false, "strip"> {
+  ): ZodObject<T, "strip"> {
     return new ZodObject({
       shape,
       unknownKeys: "strip",
@@ -4087,7 +4085,8 @@ export class ZodObject<
   }
 }
 
-export class StrictZodObject<T extends ZodRawShape> extends ZodObject<T, true, any> {
+//@ts-ignore - this gets labeled as excessively deep if not suppressed
+export class StrictZodObject<T extends ZodRawShape> extends ZodObject<T,any> {
   _parse(input: ParseInput) {
     const parsedType = this._getType(input);
     if (parsedType !== ZodParsedType.object) {
@@ -4396,7 +4395,6 @@ const getDiscriminator = <T extends ZodTypeAny>(type: T): Primitive[] => {
 export type ZodDiscriminatedUnionOption<Discriminator extends string> =
   ZodObject<
     { [key in Discriminator]: ZodTypeAny } & ZodRawShape,
-    false,
     UnknownKeysParam,
     ZodTypeAny
   >;

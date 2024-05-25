@@ -1,10 +1,10 @@
 {
-  "name": "zod",
+  "name": "zod-warn",
   "version": "3.23.6",
-  "author": "Colin McDonnell <colin@colinhacks.com>",
+  "author": "Logan <EllAchE on GH 😁>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/colinhacks/zod.git"
+    "url": "git+https://github.com/EllAchE/zod.git"
   },
   "main": "./lib/index.js",
   "module": "./lib/index.mjs",
@@ -21,6 +21,7 @@
     "@types/node": "14",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
     "@typescript-eslint/parser": "^5.15.0",
+    "@web-std/file": "^3.0.3",
     "babel-jest": "^29.5.0",
     "benchmark": "^2.1.4",
     "dependency-cruiser": "^9.19.0",
@@ -55,9 +56,9 @@
     "./locales/*": "./lib/locales/*"
   },
   "bugs": {
-    "url": "https://github.com/colinhacks/zod/issues"
+    "url": "https://github.com/EllAchE/zod/issues"
   },
-  "description": "TypeScript-first schema declaration and validation library with static type inference",
+  "description": "Fork of Zod by Colin McDonnell <colin@colinhacks.com> to add support for warn & assert validation",
   "files": [
     "/lib",
     "/index.d.ts"

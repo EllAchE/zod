@@ -1,7 +1,7 @@
+import type { ZodParsedType } from "..";
 import { getErrorMap } from "../errors";
 import defaultErrorMap from "../locales/en";
 import type { IssueData, ZodErrorMap, ZodIssue } from "../ZodError";
-import type { ZodParsedType } from "./util";
 
 export const makeIssue = (params: {
   data: any;
@@ -91,6 +91,7 @@ export function addIssueToContext(
 export type ObjectPair = {
   key: SyncParseReturnType<any>;
   value: SyncParseReturnType<any>;
+  alwaysSet?: boolean;
 };
 export class ParseStatus {
   value: "aborted" | "dirty" | "valid" = "valid";
@@ -107,7 +108,7 @@ export class ParseStatus {
   ): SyncParseReturnType {
     const arrayValue: any[] = [];
     for (const s of results) {
-      if (s.status === "aborted") return INVALID;
+      if (s.status === "aborted") status.abort();
       if (s.status === "dirty") status.dirty();
       arrayValue.push(s.value);
     }
@@ -117,7 +118,11 @@ export class ParseStatus {
 
   static async mergeObjectAsync(
     status: ParseStatus,
-    pairs: { key: ParseReturnType<any>; value: ParseReturnType<any> }[]
+    pairs: {
+      key: ParseReturnType<any>;
+      value: ParseReturnType<any>;
+      alwaysSet?: boolean;
+    }[]
   ): Promise<SyncParseReturnType<any>> {
     const syncPairs: ObjectPair[] = [];
     for (const pair of pairs) {
@@ -126,6 +131,7 @@ export class ParseStatus {
       syncPairs.push({
         key,
         value,
+        alwaysSet: pair.alwaysSet,
       });
     }
     return ParseStatus.mergeObjectSync(status, syncPairs);
@@ -133,17 +139,13 @@ export class ParseStatus {
 
   static mergeObjectSync(
     status: ParseStatus,
-    pairs: {
-      key: SyncParseReturnType<any>;
-      value: SyncParseReturnType<any>;
-      alwaysSet?: boolean;
-    }[]
+    pairs: ObjectPair[]
   ): SyncParseReturnType {
     const finalObject: any = {};
     for (const pair of pairs) {
       const { key, value } = pair;
-      if (key.status === "aborted") return INVALID;
-      if (value.status === "aborted") return INVALID;
+      if (key.status === "aborted") status.abort();
+      if (value.status === "aborted") status.abort();
       if (key.status === "dirty") status.dirty();
       if (value.status === "dirty") status.dirty();
 
@@ -163,9 +165,11 @@ export interface ParseResult {
   data: any;
 }
 
-export type INVALID = { status: "aborted" };
-export const INVALID: INVALID = Object.freeze({
+export type INVALID = { status: "aborted", value: unknown };
+// TODO: could differentiate mismatched types from invalid types (like length?)
+export const INVALID = (value: unknown): INVALID => ({
   status: "aborted",
+  value
 });
 
 export type DIRTY<T> = { status: "dirty"; value: T };
@@ -174,12 +178,22 @@ export const DIRTY = <T>(value: T): DIRTY<T> => ({ status: "dirty", value });
 export type OK<T> = { status: "valid"; value: T };
 export const OK = <T>(value: T): OK<T> => ({ status: "valid", value });
 
-export type SyncParseReturnType<T = any> = OK<T> | DIRTY<T> | INVALID;
-export type AsyncParseReturnType<T> = Promise<SyncParseReturnType<T>>;
-export type ParseReturnType<T> =
-  | SyncParseReturnType<T>
-  | AsyncParseReturnType<T>;
+export type WARN = { status: "warn"; value: unknown };
+export const WARN = (value: unknown): WARN => ({ status: "warn", value });
 
+// success flag is passed down from the top-level parse function to say if the entire parse was successful
+export type SyncParseReturnType<T = any, SuccessFlag extends (boolean | undefined) = undefined> =  SuccessFlag extends boolean ? (SuccessFlag extends true ? OK<T> : DIRTY<T> | WARN | INVALID) : OK<T> | DIRTY<T> | WARN | INVALID;
+export type StrictSyncParseReturnType<T = any> = OK<T>;
+export type AsyncParseReturnType<T, SuccessFlag extends (boolean | undefined) = undefined> = Promise<SyncParseReturnType<T, SuccessFlag> >;
+export type StrictAsyncParseReturnType<T> = Promise<StrictSyncParseReturnType<T>>;
+export type ParseReturnType<T, SuccessFlag extends (boolean | undefined) = undefined> =
+  | SyncParseReturnType<T, SuccessFlag>
+  | AsyncParseReturnType<T, SuccessFlag>
+export type StrictParseReturnType<T> =
+  | StrictSyncParseReturnType<T>
+  | StrictAsyncParseReturnType<T>;
+
+export const isWarn = <T>(x: ParseReturnType<T>): x is WARN => (x as any).status === "warn"
 export const isAborted = (x: ParseReturnType<any>): x is INVALID =>
   (x as any).status === "aborted";
 export const isDirty = <T>(x: ParseReturnType<T>): x is OK<T> | DIRTY<T> =>

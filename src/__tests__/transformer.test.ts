@@ -1,7 +1,7 @@
 // @ts-ignore TS6133
 import { expect, test } from "@jest/globals";
 
-import { util } from "../helpers/util";
+import { util } from "../helpers";
 import * as z from "../index";
 
 const stringToNumber = z.string().transform((arg) => parseFloat(arg));
@@ -59,6 +59,7 @@ test("transform ctx.addIssue with parseAsync", async () => {
     .safeParseAsync("asdf");
 
   expect(JSON.parse(JSON.stringify(result))).toEqual({
+    data: 4,
     success: false,
     error: {
       issues: [

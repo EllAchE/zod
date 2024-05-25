@@ -1,7 +1,7 @@
 // @ts-ignore TS6133
 import { expect, test } from "@jest/globals";
 
-import { util } from "../helpers/util";
+import { util } from "../helpers";
 import * as z from "../index";
 
 const Test = z.object({
@@ -10,6 +10,7 @@ const Test = z.object({
   f3: z.string().nullable(),
   f4: z.array(z.object({ t: z.union([z.string(), z.boolean()]) })),
 });
+type InferredTest = z.infer<typeof Test>
 type TestFlattenedErrors = z.inferFlattenedErrors<
   typeof Test,
   { message: string; code: number }
@@ -59,7 +60,7 @@ test("form errors type inference", () => {
 });
 
 test(".flatten() type assertion", () => {
-  const parsed = Test.safeParse({}) as z.SafeParseError<void>;
+  const parsed = Test.safeParse({}) as z.SafeParseError<void, InferredTest>;
   const validFlattenedErrors: TestFlattenedErrors = parsed.error.flatten(
     () => ({ message: "", code: 0 })
   );
@@ -81,7 +82,7 @@ test(".flatten() type assertion", () => {
 });
 
 test(".formErrors type assertion", () => {
-  const parsed = Test.safeParse({}) as z.SafeParseError<void>;
+  const parsed = Test.safeParse({}) as z.SafeParseError<void, InferredTest>;
   const validFormErrors: TestFormErrors = parsed.error.formErrors;
   // @ts-expect-error should fail assertion between `TestFlattenedErrors` and `.formErrors`.
   const invalidFlattenedErrors: TestFlattenedErrors = parsed.error.formErrors;

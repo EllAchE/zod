@@ -1,7 +1,6 @@
 // @ts-ignore TS6133
 import { expect, test } from "@jest/globals";
 
-import { ZodParsedType } from "../helpers/util";
 import * as z from "../index";
 import { ZodError, ZodIssueCode } from "../ZodError";
 
@@ -9,8 +8,8 @@ test("error creation", () => {
   const err1 = ZodError.create([]);
   err1.addIssue({
     code: ZodIssueCode.invalid_type,
-    expected: ZodParsedType.object,
-    received: ZodParsedType.string,
+    expected: z.ZodParsedType.object,
+    received: z.ZodParsedType.string,
     path: [],
     message: "",
     fatal: true,
@@ -353,6 +352,22 @@ test("formatting with nullable and optional fields", () => {
     expect(error.optionalTuple?._errors).toEqual([]);
     expect(error.optionalTuple?.[0]?._errors).toEqual(["Invalid input"]);
     expect(error.optionalTuple?.[1]?._errors).toEqual(["Invalid input"]);
+  }
+});
+
+test("inferFlattenedErrors", () => {
+  const schemaWithTransform = z
+    .object({ foo: z.string() })
+    .transform((o) => ({ bar: o.foo }));
+
+  const result = schemaWithTransform.safeParse({});
+
+  expect(result.success).toEqual(false);
+  if (!result.success) {
+    type ValidationErrors = z.inferFlattenedErrors<typeof schemaWithTransform>;
+    const error: ValidationErrors = result.error.flatten();
+    expect(error.formErrors).toEqual([]);
+    expect(error.fieldErrors).toEqual({ foo: ["Required"] });
   }
 });
 

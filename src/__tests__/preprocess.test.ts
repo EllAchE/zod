@@ -1,7 +1,7 @@
 // @ts-ignore TS6133
 import { expect, test } from "@jest/globals";
 
-import { util } from "../helpers/util";
+import { util } from "../helpers";
 import * as z from "../index";
 
 test("preprocess", () => {
@@ -110,6 +110,7 @@ test("preprocess ctx.addIssue with parseAsync", async () => {
     .safeParseAsync("asdf");
 
   expect(JSON.parse(JSON.stringify(result))).toEqual({
+    data: "asdf",
     success: false,
     error: {
       issues: [

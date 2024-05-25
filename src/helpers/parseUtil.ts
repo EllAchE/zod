@@ -166,7 +166,8 @@ export interface ParseResult {
 }
 
 export type INVALID = { status: "aborted", value: unknown };
-export const INVALID = <T>(value: T): INVALID => ({
+// TODO: could differentiate mismatched types from invalid types (like length?)
+export const INVALID = (value: unknown): INVALID => ({
   status: "aborted",
   value
 });

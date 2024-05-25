@@ -35,8 +35,14 @@ if (obj0.success === true)
     }
 
 const obj = z.sObject({
-    ns: z.string(),
+    s: z.string(),
     ss: z.sString(),
+    sn: z.sNumber(),
+    n: z.number(),
+    b: z.boolean(),
+    sb: z.sBoolean(),
+    arr: z.array(z.sString()),
+    sarr: z.sArray(z.sString()),
 }).multiParse({ ns: "hello", ss: "world" });
 
 if (obj.success === true) {

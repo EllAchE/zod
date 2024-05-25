@@ -88,29 +88,7 @@ class ParseInputLazyPath implements ParseInput {
   }
 }
 
-const handleResult = <Output>(
-  ctx: ParseContext,
-  result: SyncParseReturnType<Output>
-) => {
-  if (isValid(result)) {
-    return { success: true as true, data: result.value };
-  } else {
-    if (!ctx.common.issues.length) {
-      throw new Error("Validation failed but no issues detected.");
-    }
 
-    return {
-      success: false as false,
-      get error() {
-        if ((this as any)._error) return (this as any)._error as Error;
-        const error = new ZodError(ctx.common.issues);
-        (this as any)._error = error;
-        return (this as any)._error;
-      },
-      data: result.value as Output
-    };
-  }
-};
 
 export type RawCreateParams =
   | {
@@ -159,22 +137,6 @@ export type SafeParseResult<Input, Output> = {
   data: Output;
 };
 
-// export type SafeParseSuccess<Output> = {
-//   success: true;
-//   data: Output;
-//   error?: never;
-// };
-// export type SafeParseError<Input, Output> = {
-//   success: false;
-//   error: ZodError<Input>;
-//   data: Output;
-// };
-
-
-// export type SafeParseReturnType<Input, Output> =
-//   | SafeParseSuccess<Output>
-//   | SafeParseError<Input, Output>;
-
 export abstract class ZodType<
   Output = any,
   Def extends ZodTypeDef = ZodTypeDef,
@@ -190,8 +152,6 @@ export abstract class ZodType<
   }
 
   abstract _parse(input: ParseInput): ParseReturnType<Output>
-
-  // abstract _parseStrict(input: ParseInput): OK<Output>;
 
   _getType(input: ParseInput): string {
     return getParsedType(input.data);
@@ -239,14 +199,6 @@ export abstract class ZodType<
     return result;
   }
 
-  // _parseStrictSync(input: ParseInput): StrictSyncParseReturnType<Output> {
-  //   const result = this._parseStrict(input);
-  //   if (isAsync(result)) {
-  //     throw new Error("Synchronous parse encountered promise.");
-  //   }
-  //   return result;
-  // }
-
   _parseAsync(input: ParseInput): AsyncParseReturnType<Output> {
     const result = this._parse(input);
     return Promise.resolve(result);
@@ -276,29 +228,32 @@ export abstract class ZodType<
     };
     const result = this._parseSync({ data, path: ctx.path, parent: ctx });
 
-    return handleResult(ctx, result);
+    return this.handleResult(ctx, result);
   }
 
-  multiParse(
-    data: unknown,
-    params?: Partial<ParseParams>
-  ) {
-    const ctx: ParseContext = {
-      common: {
-        issues: [],
-        async: params?.async ?? false,
-        contextualErrorMap: params?.errorMap,
-      },
-      path: params?.path || [],
-      schemaErrorMap: this._def.errorMap,
-      parent: null,
-      data,
-      parsedType: getParsedType(data),
-    };
-    const result = this._parseSync({ data, path: ctx.path, parent: ctx });
-
-    return handleResult(ctx, result);
-  }
+  handleResult = <Output>(
+    ctx: ParseContext,
+    result: SyncParseReturnType<Output>
+  ) => {
+    if (isValid(result)) {
+      return { success: true, data: result.value };
+    } else {
+      if (!ctx.common.issues.length) {
+        throw new Error("Validation failed but no issues detected.");
+      }
+  
+      return {
+        success: false,
+        get error() {
+          if ((this as any)._error) return (this as any)._error as Error;
+          const error = new ZodError(ctx.common.issues);
+          (this as any)._error = error;
+          return (this as any)._error;
+        },
+        data: result.value as Output
+      };
+    }
+  };
 
   async parseAsync(
     data: unknown,
@@ -330,7 +285,7 @@ export abstract class ZodType<
     const result = await (isAsync(maybeAsyncResult)
       ? maybeAsyncResult
       : Promise.resolve(maybeAsyncResult));
-    return handleResult(ctx, result);
+    return this.handleResult(ctx, result);
   }
 
   /** Alias of safeParseAsync */
@@ -3590,9 +3545,7 @@ export class ZodObject<
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<T, Catchall, UnknownKeys>,
   Input = objectInputType<T, Catchall, UnknownKeys>,
-// > extends ZodType<Output, ZodObjectDef<T, UnknownKeys, Catchall>, Input> {
 > extends ZodType<StrictFlag extends false ? unknown : Output, ZodObjectDef<T, UnknownKeys, Catchall>,  StrictFlag extends false ? unknown : Input> {
-// > extends ZodType<unknown, ZodObjectDef<T, UnknownKeys, Catchall>,  unknown> {
   private _cached: { shape: T; keys: string[] } | null = null;
 
   _getCached(): { shape: T; keys: string[] } {

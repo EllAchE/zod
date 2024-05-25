@@ -1067,336 +1067,6 @@ export class ZodString<Output = string | unknown, Input = Output> extends ZodTyp
     return { status: status.value, value: input.data };
   }
 
-  _parseStrict(input: ParseInput) {
-    if (this._def.coerce) {
-      input.data = String(input.data);
-    }
-    const parsedType = this._getType(input);
-
-    if (parsedType !== ZodParsedType.string) {
-      throw new Error("Invalid input");
-    }
-
-    const status = new ParseStatus();
-    let ctx: undefined | ParseContext = undefined;
-
-    for (const check of this._def.checks) {
-      if (check.kind === "min") {
-        if (input.data.length < check.value) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_small,
-            minimum: check.value,
-            type: "string",
-            inclusive: true,
-            exact: false,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "max") {
-        if (input.data.length > check.value) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.too_big,
-            maximum: check.value,
-            type: "string",
-            inclusive: true,
-            exact: false,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "length") {
-        const tooBig = input.data.length > check.value;
-        const tooSmall = input.data.length < check.value;
-        if (tooBig || tooSmall) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          if (tooBig) {
-            addIssueToContext(ctx, {
-              code: ZodIssueCode.too_big,
-              maximum: check.value,
-              type: "string",
-              inclusive: true,
-              exact: true,
-              message: check.message,
-            });
-          } else if (tooSmall) {
-            addIssueToContext(ctx, {
-              code: ZodIssueCode.too_small,
-              minimum: check.value,
-              type: "string",
-              inclusive: true,
-              exact: true,
-              message: check.message,
-            });
-          }
-          status.dirty();
-        }
-      } else if (check.kind === "email") {
-        if (!emailRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "email",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "jwt") {
-        if (!isValidJwt(input.data, check.alg)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "jwt",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "emoji") {
-        if (!emojiRegex) {
-          emojiRegex = new RegExp(_emojiRegex, "u");
-        }
-        if (!emojiRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "emoji",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "uuid") {
-        if (!uuidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "uuid",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "nanoid") {
-        if (!nanoidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "nanoid",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "guid") {
-        if (!guidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "guid",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "cuid") {
-        if (!cuidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "cuid",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "cuid2") {
-        if (!cuid2Regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "cuid2",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "ulid") {
-        if (!ulidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "ulid",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "xid") {
-        if (!xidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "xid",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "ksuid") {
-        if (!ksuidRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "ksuid",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "url") {
-        try {
-          const url = new URL(input.data);
-
-          if (!hostnameRegex.test(url.hostname)) {
-            throw new Error("hostname is invalid");
-          }
-        } catch {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "url",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "regex") {
-        check.regex.lastIndex = 0;
-        const testResult = check.regex.test(input.data);
-        if (!testResult) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "regex",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "trim") {
-        input.data = input.data.trim();
-      } else if (check.kind === "includes") {
-        if (!(input.data as string).includes(check.value, check.position)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: { includes: check.value, position: check.position },
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "toLowerCase") {
-        input.data = input.data.toLowerCase();
-      } else if (check.kind === "toUpperCase") {
-        input.data = input.data.toUpperCase();
-      } else if (check.kind === "startsWith") {
-        if (!(input.data as string).startsWith(check.value)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: { startsWith: check.value },
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "endsWith") {
-        if (!(input.data as string).endsWith(check.value)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: { endsWith: check.value },
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "datetime") {
-        const regex = datetimeRegex(check);
-
-        if (!regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: "datetime",
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "date") {
-        const regex = dateRegex;
-
-        if (!regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: "date",
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "time") {
-        const regex = timeRegex(check);
-
-        if (!regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: "time",
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "duration") {
-        if (!durationRegex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "duration",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "ip") {
-        if (!isValidIP(input.data, check.version)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "ip",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "base64") {
-        if (!base64Regex.test(input.data)) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            validation: "base64",
-            code: ZodIssueCode.invalid_string,
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else if (check.kind === "json") {
-        try {
-          JSON.parse(input.data);
-        } catch (err) {
-          ctx = this._getOrReturnCtx(input, ctx);
-          addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_string,
-            validation: "json",
-            message: check.message,
-          });
-          status.dirty();
-        }
-      } else {
-        util.assertNever(check);
-      }
-    }
-
-    if (status.value !== "valid") throw INVALID(ctx?.data);
-    return { status: status.value, value: input.data as string };
-  }
-
   protected _regex(
     regex: RegExp,
     validation: StringValidation,
@@ -2387,7 +2057,7 @@ export class StrictZodNumber extends ZodNumber<number> {
         expected: ZodParsedType.number,
         received: ctx.parsedType,
       });
-      throw INVALID(ctx.data)
+      throw new ZodError(ctx?.common.issues ?? []);
     }
 
     let ctx: undefined | ParseContext = undefined;
@@ -3317,7 +2987,7 @@ Cardinality extends ArrayCardinality = "many",> extends ZodArray<T, Cardinality,
         expected: ZodParsedType.array,
         received: ctx.parsedType,
       });
-      throw INVALID(ctx.data)
+      throw new ZodError(ctx?.common.issues ?? []);
     }
 
     if (def.exactLength !== null) {
@@ -4050,7 +3720,7 @@ export class StrictZodObject<T extends ZodRawShape> extends ZodObject<T, true, a
         expected: ZodParsedType.object,
         received: ctx.parsedType,
       });
-      throw INVALID(ctx.data)
+      throw new ZodError(ctx?.common.issues ?? []);
     }
 
     const { status, ctx } = this._processInputParams(input);
@@ -4145,7 +3815,7 @@ export class StrictZodObject<T extends ZodRawShape> extends ZodObject<T, true, a
           return ParseStatus.mergeObjectSync(status, syncPairs);
         });
     } else {
-      if (status.value !== "valid") throw new Error("Invalid status");
+      if (status.value !== "valid") throw new ZodError(ctx?.common.issues ?? []);
       return ParseStatus.mergeObjectSync(status, pairs as any) as {status: "valid", value: T};
     }
   }
@@ -4384,8 +4054,7 @@ export class StrictZodUnion<T extends ZodUnionOptions> extends ZodUnion<T, true>
         if (result.status === "valid") {
           return result;
         } else if (result.status === "dirty" && !dirty) {
-          throw new Error("Invalid status");
-          // dirty = { result, ctx: childCtx };
+          throw new ZodError(ctx?.common.issues ?? []);
         }
 
         if (childCtx.common.issues.length) {
@@ -4405,7 +4074,7 @@ export class StrictZodUnion<T extends ZodUnionOptions> extends ZodUnion<T, true>
         unionErrors,
       });
 
-      throw new Error("failed to parse strict union")
+      throw new ZodError(ctx?.common.issues ?? []);
     }
   }
 

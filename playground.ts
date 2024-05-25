@@ -1,4 +1,4 @@
-import { StrictZodString, z } from "./src/index";
+import { z } from "./src/index";
 
 z;
 

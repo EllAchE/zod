@@ -88,7 +88,7 @@ class ParseInputLazyPath implements ParseInput {
   }
 }
 
-const handleResult = <Input, Output>(
+const handleResult = <Output>(
   ctx: ParseContext,
   result: SyncParseReturnType<Output>
 ) => {
@@ -312,7 +312,7 @@ export abstract class ZodType<
   async safeParseAsync(
     data: unknown,
     params?: Partial<ParseParams>
-  ): Promise<SafeParseReturnType<Input, Output>> {
+  ) {
     const ctx: ParseContext = {
       common: {
         issues: [],
@@ -1447,7 +1447,7 @@ export class ZodString<Output = string | unknown, Input = Output> extends ZodTyp
     validation: StringValidation,
     message?: errorUtil.ErrMessage
   ) {
-    return this.refinement((data) => regex.test(data), {
+    return this.refinement((data) => regex.test(data as string), {
       validation,
       code: ZodIssueCode.invalid_string,
       ...errorUtil.errToObj(message),
@@ -1617,7 +1617,7 @@ export class ZodString<Output = string | unknown, Input = Output> extends ZodTyp
     }
     const schema = this.transform((val, ctx) => {
       try {
-        return JSON.parse(val);
+        return JSON.parse(val as string);
       } catch (error: unknown) {
         ctx.addIssue({
           code: ZodIssueCode.invalid_string,
@@ -3295,6 +3295,7 @@ export type deoptional<T extends ZodTypeAny> = T extends ZodOptional<infer U>
 
 export type SomeZodObject = ZodObject<
   ZodRawShape,
+  false,
   UnknownKeysParam,
   ZodTypeAny
 >;
@@ -3335,11 +3336,14 @@ function deepPartialify(schema: ZodTypeAny): any {
 
 export class ZodObject<
   T extends ZodRawShape,
+  StrictFlag extends boolean = false,
   UnknownKeys extends UnknownKeysParam = UnknownKeysParam,
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<T, Catchall, UnknownKeys>,
-  Input = objectInputType<T, Catchall, UnknownKeys>
-> extends ZodType<Output, ZodObjectDef<T, UnknownKeys, Catchall>, Input> {
+  Input = objectInputType<T, Catchall, UnknownKeys>,
+// > extends ZodType<Output, ZodObjectDef<T, UnknownKeys, Catchall>, Input> {
+> extends ZodType<StrictFlag extends false ? unknown : Output, ZodObjectDef<T, UnknownKeys, Catchall>,  StrictFlag extends false ? unknown : Input> {
+// > extends ZodType<unknown, ZodObjectDef<T, UnknownKeys, Catchall>,  unknown> {
   private _cached: { shape: T; keys: string[] } | null = null;
 
   _getCached(): { shape: T; keys: string[] } {
@@ -3461,7 +3465,7 @@ export class ZodObject<
     return this._def.shape();
   }
 
-  strict(message?: errorUtil.ErrMessage): ZodObject<T, "strict", Catchall> {
+  strict(message?: errorUtil.ErrMessage): ZodObject<T, false, "strict", Catchall> {
     errorUtil.errToObj;
     return new ZodObject({
       ...this._def,
@@ -3484,14 +3488,14 @@ export class ZodObject<
     }) as any;
   }
 
-  strip(): ZodObject<T, "strip", Catchall> {
+  strip(): ZodObject<T, false, "strip", Catchall> {
     return new ZodObject({
       ...this._def,
       unknownKeys: "strip",
     }) as any;
   }
 
-  passthrough(): ZodObject<T, "passthrough", Catchall> {
+  passthrough(): ZodObject<T, false, "passthrough", Catchall> {
     return new ZodObject({
       ...this._def,
       unknownKeys: "passthrough",
@@ -3523,10 +3527,10 @@ export class ZodObject<
   //   };
   extend<Augmentation extends ZodRawShape>(
     augmentation: Augmentation & Partial<{ [k in keyof T]: unknown }>
-  ): ZodObject<objectUtil.extendShape<T, Augmentation>, UnknownKeys, Catchall>;
+  ): ZodObject<objectUtil.extendShape<T, Augmentation>, false, UnknownKeys, Catchall>;
   extend<Augmentation extends ZodRawShape>(
     augmentation: Augmentation
-  ): ZodObject<objectUtil.extendShape<T, Augmentation>, UnknownKeys, Catchall>;
+  ): ZodObject<objectUtil.extendShape<T, Augmentation>, false, UnknownKeys, Catchall>;
   extend(augmentation: ZodRawShape) {
     return new ZodObject({
       ...this._def,
@@ -3582,7 +3586,7 @@ export class ZodObject<
   merge<Incoming extends AnyZodObject, Augmentation extends Incoming["shape"]>(
     merging: Incoming
   ): ZodObject<
-    objectUtil.extendShape<T, Augmentation>,
+    objectUtil.extendShape<T, Augmentation>, false,
     Incoming["_def"]["unknownKeys"],
     Incoming["_def"]["catchall"]
   > {
@@ -3636,7 +3640,7 @@ export class ZodObject<
   setKey<Key extends string, Schema extends ZodTypeAny>(
     key: Key,
     schema: Schema
-  ): ZodObject<T & { [k in Key]: Schema }, UnknownKeys, Catchall> {
+  ): ZodObject<T & { [k in Key]: Schema }, false, UnknownKeys, Catchall> {
     return this.augment({ [key]: schema }) as any;
   }
   // merge<Incoming extends AnyZodObject>(
@@ -3663,7 +3667,7 @@ export class ZodObject<
 
   catchall<Index extends ZodTypeAny>(
     index: Index
-  ): ZodObject<T, UnknownKeys, Index> {
+  ): ZodObject<T, false, UnknownKeys, Index> {
     return new ZodObject({
       ...this._def,
       catchall: index,
@@ -3672,7 +3676,7 @@ export class ZodObject<
 
   pick<Mask extends util.Exactly<{ [k in keyof T]?: true }, Mask>>(
     mask: Mask
-  ): ZodObject<Pick<T, Extract<keyof T, keyof Mask>>, UnknownKeys, Catchall> {
+  ): ZodObject<Pick<T, Extract<keyof T, keyof Mask>>, false, UnknownKeys, Catchall> {
     const shape: any = {};
 
     util.objectKeys(mask).forEach((key) => {
@@ -3689,7 +3693,7 @@ export class ZodObject<
 
   omit<Mask extends util.Exactly<{ [k in keyof T]?: true }, Mask>>(
     mask: Mask
-  ): ZodObject<Omit<T, keyof Mask>, UnknownKeys, Catchall> {
+  ): ZodObject<Omit<T, keyof Mask>, false, UnknownKeys, Catchall> {
     const shape: any = {};
 
     util.objectKeys(this.shape).forEach((key) => {
@@ -3712,7 +3716,7 @@ export class ZodObject<
   }
 
   partial(): ZodObject<
-    { [k in keyof T]: ZodOptional<T[k]> },
+    { [k in keyof T]: ZodOptional<T[k]> }, false,
     UnknownKeys,
     Catchall
   >;
@@ -3721,7 +3725,7 @@ export class ZodObject<
   ): ZodObject<
     objectUtil.noNever<{
       [k in keyof T]: k extends keyof Mask ? ZodOptional<T[k]> : T[k];
-    }>,
+    }>, false,
     UnknownKeys,
     Catchall
   >;
@@ -3745,7 +3749,7 @@ export class ZodObject<
   }
 
   required(): ZodObject<
-    { [k in keyof T]: deoptional<T[k]> },
+    { [k in keyof T]: deoptional<T[k]> }, false,
     UnknownKeys,
     Catchall
   >;
@@ -3754,7 +3758,7 @@ export class ZodObject<
   ): ZodObject<
     objectUtil.noNever<{
       [k in keyof T]: k extends keyof Mask ? deoptional<T[k]> : T[k];
-    }>,
+    }>, false,
     UnknownKeys,
     Catchall
   >;
@@ -3792,7 +3796,7 @@ export class ZodObject<
     shape: T,
     params?: RawCreateParams
   ): ZodObject<
-    T,
+    T, false,
     "strip",
     ZodTypeAny,
     objectOutputType<T, ZodTypeAny, "strip">,
@@ -3810,7 +3814,7 @@ export class ZodObject<
   static strictCreate<T extends ZodRawShape>(
     shape: T,
     params?: RawCreateParams
-  ): ZodObject<T, "strict"> {
+  ): ZodObject<T, false, "strict"> {
     return new ZodObject({
       shape: () => shape,
       unknownKeys: "strict",
@@ -3823,7 +3827,7 @@ export class ZodObject<
   static lazycreate<T extends ZodRawShape>(
     shape: () => T,
     params?: RawCreateParams
-  ): ZodObject<T, "strip"> {
+  ): ZodObject<T, false, "strip"> {
     return new ZodObject({
       shape,
       unknownKeys: "strip",
@@ -3834,7 +3838,7 @@ export class ZodObject<
   }
 }
 
-export class StrictZodObject<T extends ZodRawShape> extends ZodObject<T> {
+export class StrictZodObject<T extends ZodRawShape> extends ZodObject<T, true, any> {
   _parse(input: ParseInput) {
     const parsedType = this._getType(input);
     if (parsedType !== ZodParsedType.object) {
@@ -3939,7 +3943,7 @@ export class StrictZodObject<T extends ZodRawShape> extends ZodObject<T> {
           return ParseStatus.mergeObjectSync(status, syncPairs);
         });
     } else {
-      if (status !== "valid") throw new Error("Invalid status");
+      if (status.value !== "valid") throw new Error("Invalid status");
       return ParseStatus.mergeObjectSync(status, pairs as any) as {status: "valid", value: T};
     }
   }
@@ -4143,6 +4147,7 @@ const getDiscriminator = <T extends ZodTypeAny>(type: T): Primitive[] => {
 export type ZodDiscriminatedUnionOption<Discriminator extends string> =
   ZodObject<
     { [key in Discriminator]: ZodTypeAny } & ZodRawShape,
+    false,
     UnknownKeysParam,
     ZodTypeAny
   >;
@@ -4573,7 +4578,7 @@ export class ZodTuple<
 /////////////////////////////////////////
 /////////////////////////////////////////
 export interface ZodRecordDef<
-  Key extends KeySchema = ZodString,
+  Key extends KeySchema = StrictZodString,
   Value extends ZodTypeAny = ZodTypeAny
 > extends ZodTypeDef {
   valueType: Value;
@@ -4594,7 +4599,7 @@ export type RecordType<K extends string | number | symbol, V> = [
   ? Record<K, V>
   : Partial<Record<K, V>>;
 export class ZodRecord<
-  Key extends KeySchema = ZodString,
+  Key extends KeySchema = StrictZodString,
   Value extends ZodTypeAny = ZodTypeAny
 > extends ZodType<
   RecordType<Key["_output"], Value["_output"]>,
@@ -4651,7 +4656,7 @@ export class ZodRecord<
   static create<Value extends ZodTypeAny>(
     valueType: Value,
     params?: RawCreateParams
-  ): ZodRecord<ZodString, Value>;
+  ): ZodRecord<StrictZodString, Value>;
   static create<Keys extends KeySchema, Value extends ZodTypeAny>(
     keySchema: Keys,
     valueType: Value,
@@ -4668,7 +4673,7 @@ export class ZodRecord<
     }
 
     return new ZodRecord({
-      keyType: ZodString.create(),
+      keyType: StrictZodString.create(),
       valueType: first,
       typeName: ZodFirstPartyTypeKind.ZodRecord,
       ...processCreateParams(second),

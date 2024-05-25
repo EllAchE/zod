@@ -24,7 +24,15 @@ const h = sss.multiParse("hello");
 const obj0 = z.object({
     ns: z.string(),
     ss: z.sString(),
-}).multiParse({ ns: "hello", ss: "world" }).data
+}).multiParse({ ns: "hello", ss: "world" })
+
+if (obj0.success === true) 
+    {
+        console.log(obj0.data);
+    }
+    else {
+        console.log(obj0.data);
+    }
 
 const obj = z.sObject({
     ns: z.string(),

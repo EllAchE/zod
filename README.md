@@ -1,9 +1,10 @@
 <p align="center">
   <img src="logo.svg" width="200px" align="center" alt="Zod logo" />
-  <h1 align="center">Zod</h1>
+  <h1 align="center">Zod (Warn)</h1>
   <p align="center">
     ✨ <a href="https://zod.dev">https://zod.dev</a> ✨
     <br/>
+    Fork of Zod for a use case I have! The library is mostly the same...
     TypeScript-first schema validation with static type inference
   </p>
 </p>

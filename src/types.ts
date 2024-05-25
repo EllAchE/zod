@@ -4229,8 +4229,8 @@ export interface ZodUnionDef<
   typeName: ZodFirstPartyTypeKind.ZodUnion;
 }
 
-export class ZodUnion<T extends ZodUnionOptions> extends ZodType<
-  T[number]["_output"],
+export class ZodUnion<T extends ZodUnionOptions, StrictFlag extends boolean = false> extends ZodType<
+  StrictFlag extends true ? T[number]["_output"] : unknown,
   ZodUnionDef<T>,
   T[number]["_input"]
 > {
@@ -4343,6 +4343,122 @@ export class ZodUnion<T extends ZodUnionOptions> extends ZodType<
     types: T,
     params?: RawCreateParams
   ): ZodUnion<T> {
+    return new ZodUnion({
+      options: types,
+      typeName: ZodFirstPartyTypeKind.ZodUnion,
+      ...processCreateParams(params),
+    });
+  }
+}
+
+export class StrictZodUnion<T extends ZodUnionOptions> extends ZodUnion<T, true> {
+  _parse(input: ParseInput): ParseReturnType<this["_output"]> {
+    const { ctx } = this._processInputParams(input);
+    const options = this._def.options;
+
+    function handleResults(
+      results: { ctx: ParseContext; result: SyncParseReturnType<any> }[]
+    ) {
+      // return first issue-free validation if it exists
+      for (const result of results) {
+        if (result.result.status === "valid") {
+          return result.result;
+        }
+      }
+
+      for (const result of results) {
+        if (result.result.status === "dirty") {
+          // add issues from dirty option
+
+          ctx.common.issues.push(...result.ctx.common.issues);
+          return result.result;
+        }
+      }
+
+      // return invalid
+      const unionErrors = results.map(
+        (result) => new ZodError(result.ctx.common.issues)
+      );
+
+      addIssueToContext(ctx, {
+        code: ZodIssueCode.invalid_union,
+        unionErrors,
+      });
+      return INVALID(ctx.data)
+    }
+
+    if (ctx.common.async) {
+      return Promise.all(
+        options.map(async (option) => {
+          const childCtx: ParseContext = {
+            ...ctx,
+            common: {
+              ...ctx.common,
+              issues: [],
+            },
+            parent: null,
+          };
+          return {
+            result: await option._parseAsync({
+              data: ctx.data,
+              path: ctx.path,
+              parent: childCtx,
+            }),
+            ctx: childCtx,
+          };
+        })
+      ).then(handleResults);
+    } else {
+      let dirty: undefined | { result: DIRTY<any>; ctx: ParseContext } =
+        undefined;
+      const issues: ZodIssue[][] = [];
+      for (const option of options) {
+        const childCtx: ParseContext = {
+          ...ctx,
+          common: {
+            ...ctx.common,
+            issues: [],
+          },
+          parent: null,
+        };
+        const result = option._parseSync({
+          data: ctx.data,
+          path: ctx.path,
+          parent: childCtx,
+        });
+
+        if (result.status === "valid") {
+          return result;
+        } else if (result.status === "dirty" && !dirty) {
+          throw new Error("Invalid status");
+          // dirty = { result, ctx: childCtx };
+        }
+
+        if (childCtx.common.issues.length) {
+          issues.push(childCtx.common.issues);
+        }
+      }
+
+      // if (dirty) {
+        // throw new Error("Invalid status strict union dirty");
+        // ctx.common.issues.push(...dirty.ctx.common.issues);
+        // return dirty.result;
+      // }
+
+      const unionErrors = issues.map((issues) => new ZodError(issues));
+      addIssueToContext(ctx, {
+        code: ZodIssueCode.invalid_union,
+        unionErrors,
+      });
+
+      throw new Error("failed to parse strict union")
+    }
+  }
+
+  static create<T extends Readonly<[ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]>>(
+    types: T,
+    params?: RawCreateParams
+  ): StrictZodUnion<T> {
     return new ZodUnion({
       options: types,
       typeName: ZodFirstPartyTypeKind.ZodUnion,
@@ -6814,6 +6930,7 @@ const objectType: typeof ZodObject.create = (...args) =>
 const strictObjectType: typeof ZodObject.strictCreate = (...args) =>
   ZodObject.strictCreate(...args);
 const unionType: typeof ZodUnion.create = (...args) => ZodUnion.create(...args);
+const strictUnionType: typeof StrictZodUnion.create = (...args) => StrictZodUnion.create(...args);
 const discriminatedUnionType: typeof ZodDiscriminatedUnion.create = (...args) =>
   ZodDiscriminatedUnion.create(...args);
 const intersectionType: typeof ZodIntersection.create = (...args) =>
@@ -6877,13 +6994,11 @@ export {
   pipelineType as pipeline,
   preprocessType as preprocess,
   promiseType as promise,
-  recordType as record, strictArrayType as sArray, strictBooleanType as sBoolean, setType as set, strictNumberType as sNumber, strictZodObjectType as sObject, strictStringType as sString, strictObjectType as strictObject, stringType as string,
-  symbolType as symbol,
+  recordType as record, strictArrayType as sArray, strictBooleanType as sBoolean, setType as set, strictNumberType as sNumber, strictZodObjectType as sObject, strictStringType as sString, strictObjectType as strictObject, stringType as string, strictUnionType as sUnion, symbolType as symbol,
   effectsType as transformer,
   tupleType as tuple,
   undefinedType as undefined,
-  unionType as union,
-  unknownType as unknown,
+  unionType as union, unknownType as unknown,
   voidType as void
 };
 

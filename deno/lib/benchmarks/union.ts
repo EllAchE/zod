@@ -1,37 +1,37 @@
 import Benchmark from "benchmark";
 
-import { z } from "../index";
+import { z } from "../index.ts";
 
-const doubleSuite = new Benchmark.Suite("z.discriminatedUnion: double");
-const manySuite = new Benchmark.Suite("z.discriminatedUnion: many");
+const doubleSuite = new Benchmark.Suite("z.union: double");
+const manySuite = new Benchmark.Suite("z.union: many");
 
-const aSchema = z.wObject({
+const aSchema = z.object({
   type: z.literal("a"),
 });
 const objA = {
   type: "a",
 };
 
-const bSchema = z.wObject({
+const bSchema = z.object({
   type: z.literal("b"),
 });
 const objB = {
   type: "b",
 };
 
-const cSchema = z.wObject({
+const cSchema = z.object({
   type: z.literal("c"),
 });
 const objC = {
   type: "c",
 };
 
-const dSchema = z.wObject({
+const dSchema = z.object({
   type: z.literal("d"),
 });
 
-const double = z.discriminatedUnion("type", [aSchema, bSchema]);
-const many = z.discriminatedUnion("type", [aSchema, bSchema, cSchema, dSchema]);
+const double = z.union([aSchema, bSchema]);
+const many = z.union([aSchema, bSchema, cSchema, dSchema]);
 
 doubleSuite
   .add("valid: a", () => {

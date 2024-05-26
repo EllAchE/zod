@@ -1,5 +1,5 @@
-import { defaultErrorMap, getErrorMap } from "./errors";
-import { enumUtil, errorUtil, objectUtil, partialUtil, util } from "./helpers";
+import { defaultErrorMap, getErrorMap } from "./errors.ts";
+import { enumUtil, errorUtil, objectUtil, partialUtil, util } from "./helpers/index.ts";
 import {
   addIssueToContext,
   AsyncParseReturnType,
@@ -18,9 +18,9 @@ import {
   ParseReturnType,
   ParseStatus,
   SyncParseReturnType
-} from "./helpers/parseUtil";
-import { Primitive } from "./helpers/typeAliases";
-import { getParsedType, ZodParsedType } from "./helpers/util";
+} from "./helpers/parseUtil.ts";
+import { Primitive } from "./helpers/typeAliases.ts";
+import { getParsedType, ZodParsedType } from "./helpers/util.ts";
 import {
   IssueData,
   StringValidation,
@@ -29,9 +29,9 @@ import {
   ZodErrorMap,
   ZodIssue,
   ZodIssueCode,
-} from "./ZodError";
+} from "./ZodError.ts";
 
-export { ZodParsedType } from "./helpers/util";
+export { ZodParsedType } from "./helpers/util.ts";
 export type { TypeOf as infer };
 
 ///////////////////////////////////////
@@ -6590,7 +6590,7 @@ const ostring = () => stringType().optional();
 const onumber = () => numberType().optional();
 const oboolean = () => booleanType().optional();
 
-export * as coerce from "./coerce";
+export * as coerce from "./coerce.ts";
 
 export {
   anyType as any, strictArrayType as array, bigIntType as bigint, strictBooleanType as boolean, dateType as date,

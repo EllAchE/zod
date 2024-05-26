@@ -1,6 +1,6 @@
 import Benchmark from "benchmark";
 
-import { z } from "../index";
+import { z } from "../index.ts";
 
 const doubleSuite = new Benchmark.Suite("z.discriminatedUnion: double");
 const manySuite = new Benchmark.Suite("z.discriminatedUnion: many");
